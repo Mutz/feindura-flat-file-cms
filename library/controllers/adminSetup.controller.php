@@ -14,7 +14,7 @@
     You should have received a copy of the GNU General Public License along with this program;
     if not,see <http://www.gnu.org/licenses/>.
 
-* controllers/adminSetup.controller.php version 2.36
+* controllers/adminSetup.controller.php version 3.0
 */
 
 /**
@@ -24,42 +24,34 @@ require_once(dirname(__FILE__)."/../includes/secure.include.php");
 
 // ****** ---------- SAVE ADMIN CONFIG in config/admin.config.php
 if(isset($_POST['send']) && $_POST['send'] ==  'adminSetup') {
-  
+
   $checkBasePathAndURL = checkBasePathAndURL();
-  
+
+
   // ** ensure the the post vars with a 'Path' in the key value ending with a '/'
   $_POST = addSlashesToPaths($_POST);
   $_POST = removeDocumentRootFromPaths($_POST);
-  
-  // ** ensure that the website path with a filename, doesnt have aslahs on the end
-  if(!empty($_POST['cfg_websitePath']) && strpos($_POST['cfg_websitePath'],'.') !== false)
+
+  // ensure that the website path with a filename, doesnt have a slashs on the end -> check if is file
+  if(is_file(DOCUMENTROOT.substr($_POST['cfg_websitePath'],0,-1)))
     $_POST['cfg_websitePath'] = substr($_POST['cfg_websitePath'],0,-1);
 
-  // ->> add SPEAKING URL to .htaccess
+  // -> CHECK if the VARNAMES are EMPTY, and add the previous ones, if pretty url = true
+  if(empty($_POST['cfg_varNamePage']))
+    $_POST['cfg_varNamePage'] = 'page';
+  if(empty($_POST['cfg_varNameCategory']))
+    $_POST['cfg_varNameCategory'] = 'category';
+  if(empty($_POST['cfg_varNameModul']))
+    $_POST['cfg_varNameModul'] = 'modul';
+
+  // ->> add PRETTY URL to .htaccess
   // --------------------------
-  saveSpeakingUrl($errorWindow);
-  
-  // -> CHECK if the VARNAMES are EMPTY, and add the previous ones, if speaking url = true
-  if($_POST['cfg_speakingUrl'] == 'true') {
-    if(!isset($_POST['cfg_varNamePage']))
-      $_POST['cfg_varNamePage'] = $adminConfig['varName']['page'];
-    if(!isset($_POST['cfg_varNameCategory']))
-      $_POST['cfg_varNameCategory'] = $adminConfig['varName']['category'];
-    if(!isset($_POST['cfg_varNameModul']))
-      $_POST['cfg_varNameModul'] = $adminConfig['varName']['modul'];
-  } else {
-    if(empty($_POST['cfg_varNamePage']))
-      $_POST['cfg_varNamePage'] = 'page';
-    if(empty($_POST['cfg_varNameCategory']))
-      $_POST['cfg_varNameCategory'] = 'category';
-    if(empty($_POST['cfg_varNameModul']))
-      $_POST['cfg_varNameModul'] = 'modul';
-  }
-  
+  savePrettyUrlCode($ERRORWINDOW);
+
   // -> check Filter settings
   if(empty($_POST['cfg_editorHtmlLawed']))
     unset($_POST['cfg_editorSafeHtml']);
-  
+
   // -> add <br> to the USER-INFO and check html code
   $_POST['cfg_userInfo'] = nl2br($_POST['cfg_userInfo']);
   $_POST['cfg_userInfo'] = GeneralFunctions::htmLawed($_POST['cfg_userInfo'],array(
@@ -67,138 +59,107 @@ if(isset($_POST['send']) && $_POST['send'] ==  'adminSetup') {
     'cdata'=> 1,
     'safe'=> 1
   ));
-  
+
+  // deactivate the editing of the snippets in the website config, if snippets is deactivated
+  if(empty($_POST['cfg_snippets']))
+    $_POST['cfg_userSnippets'] = false;
+
   // -> CLEAN all " out of the strings
   foreach($_POST as $postKey => $post)
     $_POST[$postKey] = str_replace(array('\"',"\'"),'',$post);
-  
+
+  // remove last "/"
+  if(substr($_POST['cfg_documentroot'], -1) == '/')
+    $_POST['cfg_documentroot'] = substr($_POST['cfg_documentroot'], 0, -1);
+
   // -> PREPARE CONFIG VARs
-  $serverProtocol = strtolower(substr($_SERVER["SERVER_PROTOCOL"],0,strpos($_SERVER["SERVER_PROTOCOL"],'/'))).((empty($_SERVER["HTTPS"])) ? '' : ($_SERVER["HTTPS"] == "on") ? "s" : "");
-  
-  $adminConfig['url'] = $serverProtocol."://".$_SERVER['SERVER_NAME'];
-  $adminConfig['basePath'] = preg_replace('#/+#','/',dirname($_SERVER['PHP_SELF']).'/');
-  
-  // set the REAL BASE PATH
-  if((empty($adminConfig['realBasePath']) || !$checkBasePathAndURL) && !isset($_POST['cfg_realBasePath'])) {
-    $_POST['cfg_realBasePath'] = $adminConfig['basePath'];
-  } elseif(!isset($_POST['cfg_realBasePath']))
-    $_POST['cfg_realBasePath'] = $adminConfig['realBasePath'];
-  
-  $adminConfig['realBasePath'] = $_POST['cfg_realBasePath'];
-  $adminConfig['websitePath'] =  $_POST['cfg_websitePath'];
-  
-  $adminConfig['uploadPath'] = $_POST['cfg_uploadPath'];  
-  $adminConfig['websiteFilesPath'] = $_POST['cfg_websiteFilesPath'];
-  $adminConfig['stylesheetPath'] = $_POST['cfg_stylesheetPath'];
-  
-  $adminConfig['permissions'] = $_POST['cfg_permissions'];
-  $adminConfig['timeZone'] = $_POST['cfg_timeZone'];
-  $adminConfig['dateFormat'] = $_POST['cfg_dateFormat'];
-  $adminConfig['speakingUrl'] = $_POST['cfg_speakingUrl'];
-    
-  $adminConfig['varName']['page'] = $_POST['cfg_varNamePage'];  
-  $adminConfig['varName']['category'] = $_POST['cfg_varNameCategory'];  
-  $adminConfig['varName']['modul'] = $_POST['cfg_varNameModul'];
-  
-  $adminConfig['user']['frontendEditing'] = $_POST['cfg_userFrontendEditing'];
-  $adminConfig['user']['fileManager'] = (empty($adminConfig['uploadPath'])) ? false : $_POST['cfg_userFileManager'];
-  $adminConfig['user']['editWebsiteFiles'] = $_POST['cfg_userWebsiteFiles'];
-  $adminConfig['user']['editStyleSheets'] = $_POST['cfg_userStylesheets'];  
-  $adminConfig['user']['info'] = $_POST['cfg_userInfo'];
-    
+  $adminConfig['documentroot']             = $_POST['cfg_documentroot'];
+  $adminConfig['url']                      = generateCurrentUrl();
+  $adminConfig['basePath']                 = GeneralFunctions::URI2Path(dirname($_SERVER['PHP_SELF'])).'/';
+
+  $adminConfig['websitePath']              = GeneralFunctions::URI2Path($_POST['cfg_websitePath']);
+
+  $adminConfig['websiteFilesPath']         = GeneralFunctions::URI2Path($_POST['cfg_websiteFilesPath']);
+  $adminConfig['stylesheetPath']           = GeneralFunctions::URI2Path($_POST['cfg_stylesheetPath']);
+
+  $adminConfig['permissions']              = $_POST['cfg_permissions'];
+  $adminConfig['timezone']                 = $_POST['cfg_timeZone'];
+  $adminConfig['prettyURL']                = $_POST['cfg_prettyURL'];
+
+  $adminConfig['cache']['active']          = $_POST['cfg_cache'];
+  $adminConfig['cache']['timeout']         = $_POST['cfg_cacheTimeout'];
+
+  $adminConfig['varName']['page']          = $_POST['cfg_varNamePage'];
+  $adminConfig['varName']['category']      = $_POST['cfg_varNameCategory'];
+  $adminConfig['varName']['modul']         = $_POST['cfg_varNameModul'];
+
+  $adminConfig['editor']['htmlLawed']      = $_POST['cfg_editorHtmlLawed'];
+  $adminConfig['editor']['safeHtml']       = $_POST['cfg_editorSafeHtml'];
+  $adminConfig['editor']['editorStyles']   = $_POST['cfg_editorStyles'];
+  $adminConfig['editor']['snippets']       = $_POST['cfg_snippets'];
+  $adminConfig['editor']['enterMode']      = $_POST['cfg_editorEnterMode'];
+
+
   // -> saved in pageSetup.php
-  //$adminConfig['setStartPage'] = $_POST['cfg_setStartPage'];
-  //$adminConfig['pages']['createDelete'] = $_POST['cfg_pageCreatePages'];
-  //$adminConfig['pages']['thumbnails'] = $_POST['cfg_pageThumbnailUpload'];  
-  //$adminConfig['pages']['plugins'] = $_POST['cfg_pagePlugins'];
-  //$adminConfig['pages']['showTags'] = $_POST['cfg_pageTags'];
-  
-  $adminConfig['editor']['htmlLawed'] = $_POST['cfg_editorHtmlLawed'];
-  $adminConfig['editor']['safeHtml'] = $_POST['cfg_editorSafeHtml'];
-  $adminConfig['editor']['enterMode'] = $_POST['cfg_editorEnterMode'];
-  $adminConfig['editor']['styleFile'] = prepareStyleFilePaths($_POST['cfg_editorStyleFile']);
-  $adminConfig['editor']['styleId'] = str_replace(array('#','.'),'',$_POST['cfg_editorStyleId']);  
-  $adminConfig['editor']['styleClass'] = str_replace(array('#','.'),'',$_POST['cfg_editorStyleClass']);  
-  
-  // -> saved in pageSetup.php
-  //$adminConfig['pageThumbnail']['width'] =  $_POST['cfg_thumbWidth'];
+  //$adminConfig['pageThumbnail']['width']  =  $_POST['cfg_thumbWidth'];
   //$adminConfig['pageThumbnail']['height'] = $_POST['cfg_thumbHeight'];
-  //$adminConfig['pageThumbnail']['ratio'] = $_POST['cfg_thumbRatio'];
-  //$adminConfig['pageThumbnail']['path'] = $_POST['cfg_thumbPath'];
-  
+  //$adminConfig['pageThumbnail']['ratio']  = $_POST['cfg_thumbRatio'];
+
   // **** opens admin.config.php for writing
   if(saveAdminConfig($adminConfig)) {
     // give documentSaved status
-    $documentSaved = true;
-    StatisticFunctions::saveTaskLog(8); // <- SAVE the task in a LOG FILE
-    
+    $DOCUMENTSAVED = true;
+    saveActivityLog(8); // <- SAVE the task in a LOG FILE
+
   } else
-    $errorWindow .= sprintf($langFile['ADMINSETUP_GENERAL_error_save'],$adminConfig['realBasePath']);
-  
-  $savedForm = $_POST['savedBlock'];
-  $savedSettings = true;
+    $ERRORWINDOW .= sprintf($langFile['ADMINSETUP_GENERAL_error_save'],$adminConfig['basePath']);
+
+
+  // adds the HTML-Editor stylesheets to the NON-CATEGORY
+  $categoryConfig[0]['styleFile']    = prepareStyleFilePaths($_POST['cfg_editorStyleFile']);
+  $categoryConfig[0]['styleId']      = str_replace(array('#','.'),'',$_POST['cfg_editorStyleId']);
+  $categoryConfig[0]['styleClass']   = str_replace(array('#','.'),'',$_POST['cfg_editorStyleClass']);
+  saveCategories($categoryConfig);
+
+  $SAVEDFORM = $_POST['savedBlock'];
+  $SAVEDSETTINGS = true;
 }
 
-// ---------- Speichern in fckstyles.xml
+// ---------- Speichern in EditorStyles.js
 if(isset($_POST['saveFckStyleFile'])) {
 
   $fckstylewrite = $_POST['fckStyleFile'];
-  
-  // -> fill when with standard styles when its empty
-  if(strpos($fckstylewrite,'CKEDITOR.addStylesSet') === false)
-    $fckstylewrite = "CKEDITOR.addStylesSet( 'htmlEditorStyles',
-[
 
-{name:'Blue Title',element:'h1',styles:{color:'Blue'}},
-{name:'Red Title',element:'h3',styles:{color:'Red'}},
-{name:'Marker: Yellow',element:'span',styles:{'background-color':'Yellow'}},
-{name:'Marker: Green',element:'span',styles:{'background-color':'Lime'}},
-{name:'Big',element:'big'},
-{name:'Small',element:'small'},
-{name:'Typewriter',element:'tt'},
-{name:'Computer Code',element:'code'},
-{name:'Keyboard Phrase',element:'kbd'},
-{name:'Sample Text',element:'samp'},
-{name:'Variable',element:'var'},
-{name:'Deleted Text',element:'del'},
-{name:'Inserted Text',element:'ins'},
-{name:'Cited Work',element:'cite'},
-{name:'Inline Quotation',element:'q'},
-{name:'Language: RTL',element:'span',attributes:{dir:'rtl'}},
-{name:'Language: LTR',element:'span',attributes:{dir:'ltr'}},
-{name:'Bild nach links',element:'img',attributes:{align:'left'},styles:{'margin':'4px 6px 4px 0px'}},
-{name:'Bild nach Rechts',element:'img',attributes:{align:'right'},styles:{'margin':'4px 0px 4px 6px'}}
-
-]);";
-  
   $fckstylewrite 	= GeneralFunctions::smartStripslashes($fckstylewrite);
-    
+
   // -> write file
-  if(file_put_contents(dirname(__FILE__)."/../../config/htmlEditorStyles.js", $fckstylewrite, LOCK_EX)) {
-    
+  if(file_put_contents(dirname(__FILE__)."/../../config/EditorStyles.js", $fckstylewrite, LOCK_EX)) {
+
     // give documentSaved status
-    $documentSaved = true;
-    StatisticFunctions::saveTaskLog(9); // <- SAVE the task in a LOG FILE
+    $DOCUMENTSAVED = true;
+    saveActivityLog(9); // <- SAVE the task in a LOG FILE
+  } elseif(empty($fckstylewrite)) {
+    @unlink(dirname(__FILE__)."/../../config/EditorStyles.js");
   } else {
-    $errorWindow .= $langFile['adminSetup_styleFileSettings_error_save'];
+    $ERRORWINDOW .= $langFile['adminSetup_styleFileSettings_error_save'];
   }
-  
-  $savedForm = 'fckStyleFile';
+
+  $SAVEDFORM = 'fckStyleFile';
 }
 
 // ---------- SAVE the editFiles
 include_once(dirname(__FILE__).'/saveEditFiles.controller.php');
 
 // RE-INCLUDE
-if($savedSettings) {
+if($SAVEDSETTINGS) {
   if($fp = @fopen(dirname(__FILE__).'/../../config/admin.config.php','r')) {
     flock($fp,LOCK_SH);
+    unset($adminConfig);
     $adminConfig = include(dirname(__FILE__)."/../../config/admin.config.php");
     flock($fp,LOCK_UN);
     fclose($fp);
   }
   // RESET of the vars in the classes
-  GeneralFunctions::$storedPageIds = null;
   GeneralFunctions::$storedPages = null;
   GeneralFunctions::$adminConfig = $adminConfig;
   StatisticFunctions::$adminConfig = $adminConfig;
@@ -206,15 +167,15 @@ if($savedSettings) {
 
 // ->> SET PERMISSIONS
 if(!empty($adminConfig['permissions']) && !is_string($adminConfig['permissions'])) {
-  if(is_file(dirname(__FILE__)."/../../statistic/activity.statistic.log")) chmod(dirname(__FILE__)."/../../statistic/activity.statistic.log", $adminConfig['permissions']);
-  if(is_file(dirname(__FILE__)."/../../statistic/referer.statistic.log")) chmod(dirname(__FILE__)."/../../statistic/referer.statistic.log", $adminConfig['permissions']);
-  if(is_file(dirname(__FILE__)."/../../statistic/website.statistic.php")) chmod(dirname(__FILE__)."/../../statistic/website.statistic.php", $adminConfig['permissions']);
-  
-  if(is_file(dirname(__FILE__)."/../../config/admin.config.php")) chmod(dirname(__FILE__)."/../../config/admin.config.php", $adminConfig['permissions']);
-  if(is_file(dirname(__FILE__)."/../../config/category.config.php")) chmod(dirname(__FILE__)."/../../config/category.config.php", $adminConfig['permissions']);
-  if(is_file(dirname(__FILE__)."/../../config/statistic.config.php")) chmod(dirname(__FILE__)."/../../config/statistic.config.php", $adminConfig['permissions']);
-  if(is_file(dirname(__FILE__)."/../../config/user.config.php")) chmod(dirname(__FILE__)."/../../config/user.config.php", $adminConfig['permissions']);
-  if(is_file(dirname(__FILE__)."/../../config/website.config.php")) chmod(dirname(__FILE__)."/../../config/website.config.php", $adminConfig['permissions']);
-  if(is_file(dirname(__FILE__)."/../../config/htmlEditorStyles.js")) chmod(dirname(__FILE__)."/../../config/htmlEditorStyles.js", $adminConfig['permissions']);
+  if(is_file(dirname(__FILE__)."/../../statistics/activity.statistic.log")) @chmod(dirname(__FILE__)."/../../statistics/activity.statistic.log", $adminConfig['permissions']);
+  if(is_file(dirname(__FILE__)."/../../statistics/referer.statistic.log")) @chmod(dirname(__FILE__)."/../../statistics/referer.statistic.log", $adminConfig['permissions']);
+  if(is_file(dirname(__FILE__)."/../../statistics/website.statistic.php")) @chmod(dirname(__FILE__)."/../../statistics/website.statistic.php", $adminConfig['permissions']);
+
+  if(is_file(dirname(__FILE__)."/../../config/admin.config.php")) @chmod(dirname(__FILE__)."/../../config/admin.config.php", $adminConfig['permissions']);
+  if(is_file(dirname(__FILE__)."/../../config/category.config.php")) @chmod(dirname(__FILE__)."/../../config/category.config.php", $adminConfig['permissions']);
+  if(is_file(dirname(__FILE__)."/../../config/statistic.config.php")) @chmod(dirname(__FILE__)."/../../config/statistic.config.php", $adminConfig['permissions']);
+  if(is_file(dirname(__FILE__)."/../../config/user.config.php")) @chmod(dirname(__FILE__)."/../../config/user.config.php", $adminConfig['permissions']);
+  if(is_file(dirname(__FILE__)."/../../config/website.config.php")) @chmod(dirname(__FILE__)."/../../config/website.config.php", $adminConfig['permissions']);
+  if(is_file(dirname(__FILE__)."/../../config/EditorStyles.js")) @chmod(dirname(__FILE__)."/../../config/EditorStyles.js", $adminConfig['permissions']);
 }
 ?>

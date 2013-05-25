@@ -14,8 +14,7 @@
     You should have received a copy of the GNU General Public License along with this program;
     if not,see <http://www.gnu.org/licenses/>.
 */
-// content.loader.php version 0.4
-
+// content.loader.php version 0.5
 
 // ***********************************************************************
 // CHECKs if the DOCUMENTROOT could be resolved succesfully
@@ -28,10 +27,26 @@ echo documentrootWarning();
 if($_GET['site'] != 'adminSetup')
   echo basePathWarning();
 
+checkPagesMetaData();
+
+// ***********************************************************************
+// CHECKs if the necessary FILEs are WRITEABLE, otherwise show an warnings
+if($_GET['site'] != 'pages' && empty($_GET['page']) && checkBasePathAndURL()) {
+  if($writeableWarning = basicFilesAreWriteableWarning())
+    echo $writeableWarning.'<div class="blockSpacer"></div>';
+
+  unset($writeableWarning);
+}
+
 // ***********************************************************************
 // CHECKs if a STARTPAGE is SET and if this page exists
 // if not throw a warning
 echo startPageWarning();
+
+// ***********************************************************************
+// CHECKs if the CATEGORY CONFIG or the WEBSITE CONFIG has missing languages
+if($_GET['site'] != 'websiteSetup' && $_GET['site'] != 'pageSetup')
+echo missingLanguageWarning();
 
 // start of loading the content
 // -------------------------------------------------------------------------------------------------------------
@@ -43,14 +58,13 @@ if(empty($_GET['site']) && ($_GET['category'] == 0 || !empty($_GET['category']))
   // set the category 0 if there are no categories in the categoriesSettings.php
   if(empty($categoryConfig))
     $_GET['category'] = 0;
-  
-  echo isBlocked();
+
   include (dirname(__FILE__).'/views/editor.php');
-  
+
 // otherwise, load the sites
 // -------------------------------------------------------------------------------------------------------------
 } else {
-  
+
   // SWITCHES the &_GET['site'] var
   switch($_GET['site']) {
     // DASHBOARD
@@ -70,52 +84,69 @@ if(empty($_GET['site']) && ($_GET['category'] == 0 || !empty($_GET['category']))
     // FILEMANAGER
     case 'fileManager':
       include (dirname(__FILE__).'/views/windowBox/fileManager.php');
-      break; 
+      break;
     // DELETPAGE
     case 'deletePage':
       include (dirname(__FILE__).'/views/windowBox/deletePage.php');
       break;
-    // PGAETHUMBNAIL UPLOAD
-    case 'pageThumbnailUpload':
-      include (dirname(__FILE__).'/views/windowBox/pageThumbnailUpload.php');
+    // PAGE THUMBNAIL UPLOAD
+    case 'uploadPageThumbnail':
+      include (dirname(__FILE__).'/views/windowBox/uploadPageThumbnail.php');
       break;
-    // PGAETHUMBNAIL DELETE
-    case 'pageThumbnailDelete':
-      include (dirname(__FILE__).'/views/windowBox/pageThumbnailDelete.php');
+    // PAGE THUMBNAIL DELETE
+    case 'deletePageThumbnail':
+      include (dirname(__FILE__).'/views/windowBox/deletePageThumbnail.php');
+      break;
+    // ADD PAGE LANGUAGE
+    case 'addPageLanguage':
+      include (dirname(__FILE__).'/views/windowBox/addPageLanguage.php');
+      break;
+    // REMOVE PAGE LANGUAGE
+    case 'deletePageLanguage':
+      include (dirname(__FILE__).'/views/windowBox/deletePageLanguage.php');
+      break;
+    // EDIT LINK
+    case 'editLink':
+      include (dirname(__FILE__).'/views/windowBox/editLink.php');
+      break;
+    // USER PERMISSIONS
+    case 'userPermissions':
+      include (dirname(__FILE__).'/views/windowBox/userPermissions.php');
       break;
     // WEBSITE SETUP
     case 'websiteSetup':
-      echo isBlocked();
       include (dirname(__FILE__).'/views/websiteSetup.php');
       break;
     // ADMIN SETUP
     case 'adminSetup':
-      echo isBlocked();
-      if(isAdmin()) include (dirname(__FILE__).'/views/adminSetup.php');
+      if(GeneralFunctions::isAdmin()) include (dirname(__FILE__).'/views/adminSetup.php');
       break;
     // PAGE SETUP
     case 'pageSetup':
-      echo isBlocked();
-      if(isAdmin()) include (dirname(__FILE__).'/views/pageSetup.php');
+      if(GeneralFunctions::isAdmin()) include (dirname(__FILE__).'/views/pageSetup.php');
       break;
     // STATISTIC SETUP
     case 'statisticSetup':
-      echo isBlocked();
-      if(isAdmin()) include (dirname(__FILE__).'/views/statisticSetup.php');
+      if(GeneralFunctions::isAdmin()) include (dirname(__FILE__).'/views/statisticSetup.php');
       break;
     // USER SETUP
     case 'userSetup':
-      echo isBlocked();
-      if(isAdmin()) include (dirname(__FILE__).'/views/userSetup.php');
+      if(GeneralFunctions::isAdmin()) include (dirname(__FILE__).'/views/userSetup.php');
       break;
     // MODUL SETUP
     case 'modulSetup':
-      echo isBlocked();
-      if(isAdmin()) include (dirname(__FILE__).'/views/modulSetup.php');
+      if(GeneralFunctions::isAdmin()) include (dirname(__FILE__).'/views/modulSetup.php');
       break;
     // BACKUP
     case 'backup':
-      if(isAdmin()) include (dirname(__FILE__).'/views/backup.php');
+      if(GeneralFunctions::isAdmin()) include (dirname(__FILE__).'/views/backup.php');
+      break;
+    // ADDONS
+    case 'addons':
+      if(empty($_GET['addon']))
+        include (dirname(__FILE__).'/views/addons.php');
+      else
+        include (dirname(__FILE__).'/../addons/'.$_GET['addon'].'/addon.php');
       break;
   } //switch END
 

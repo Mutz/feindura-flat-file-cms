@@ -11,7 +11,14 @@ for a detailed menu example see createMenu()
 require('cms/feindura.include.php');
 
 // creates a new Feindura instance
-$myCms = new Feindura();
+$feindura = new Feindura();
+
+?>
+<!DOCTYPE html>
+<html>
+...
+
+<?php
 
 // the tags where the pages in the menu should have atleast one
 $tags = 'winter summer spring';
@@ -19,36 +26,36 @@ $tags = 'winter summer spring';
 // $tags = array(0 => 'winter', 1 => 'summer', 2 => 'spring');
 
 // finally create the menu from the category with ID "1" using the above set tags
-$menu = $myCms->createMenuByTags($tags,'category',1,'table',true,2,true);
+$menu = $feindura->createMenuByTags($tags,'category',1,array('table',2));
 
 // displays the menu
-foreach($menu as $link) {
-  echo $link;
+foreach($menu as $item) {
+  echo $item['menuItem'];
 }
 
 
-
-/*                              *** RESULT *** 
+                               *** RESULT *** 
 --------------------------------------------------------------------------------
-*/
 
 <table>
-<tr><td>
-<a href="?category=1&amp;page=1" title="Summer Page">
-Summer Page
-</a>
-</td><td>
-<a href="?category=1&amp;page=2" title="Winter Page">
-Winter Page
-</a>
-</td>
-</tr><tr>
-<td>
-<a href="?category=1&amp;page=6" title="Spring Page">
-Spring Page
-</a>
-</td><td></td>
-</tr>
+  <tbody>
+    <tr><td>
+      <a href="?category=1&amp;page=1" title="Summer Page">
+      Summer Page
+      </a>
+    </td><td>
+      <a href="?category=1&amp;page=2" title="Winter Page">
+      Winter Page
+      </a>
+    </td>
+    </tr><tr>
+    <td>
+      <a href="?category=1&amp;page=6" title="Spring Page">
+      Spring Page
+      </a>
+    </td><td></td>
+    </tr>
+  </tbody>
 </table>
 
 

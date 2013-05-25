@@ -27,16 +27,18 @@
 // -> GENERAL <-
 */
 
-$frontendLangFile['HEADER_TIP_GOTOBACKEND']          = 'Панель управления::Нажмите что бы войти в панель управления.';
-$frontendLangFile['PAGEFUNCTIONS_TIP_EDITINBACKEND'] = 'Редактировать страницу в панели управления.';
+$frontendLangFile['HEADER_TIP_GOTOBACKEND']               = 'Панель управления::Нажмите что бы войти в панель управления.';
+$frontendLangFile['PAGEFUNCTIONS_TIP_EDITINBACKEND']      = 'Редактировать страницу в панели управления.';
 
-$frontendLangFile['EDITPAGE_TIP_DISABLED']           = 'Невозможно отредактировать страницу::Страница содержит тег [i]<script>[/i] и может быть отредактирована только в панели управления.';
-
+$frontendLangFile['EDITPAGE_TIP_DISABLED']                = 'Редактирование в интерфейс не представляется возможным::содержание было изменено с помощью сценариев.';
+$frontendLangFile['TOPBAR_TIP_FRONTENDEDITING']           = 'Выбор редактируемой области, чтобы начать редактирование.';
+$frontendLangFile['TOPBAR_TIP_DEACTIVATEFRONTENDEDITING'] = 'Отключить Внешнего интерфейса Редактирование';
 
 // FRONTEND ERROR TEXTS
 
 $frontendLangFile['PAGE_ERROR_NOPAGE']               = 'Запрашиваемая страница не существует.';
 $frontendLangFile['PAGE_ERROR_PAGENOTPUBLIC']        = 'Запрашиваемая страница недоступна.';
+$frontendLangFile['INFO_MAINTENACE']                 = 'На сайте будут доступны в ближайшее время.';
 
 
 // DATE TEXTS
@@ -55,5 +57,3 @@ $frontendLangFile['PAGE_TEXT_MORE']                  = 'подробнее';
 // RETURN ****************************************************************************************
 // -----------------------------------------------------------------------------------------------
 return $frontendLangFile;
-
-?>

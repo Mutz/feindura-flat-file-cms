@@ -24,28 +24,24 @@ require_once(dirname(__FILE__)."/../includes/secure.include.php");
 
 // ->> SAVE the editFiles
 if(isset($_POST['send']) && $_POST['send'] == 'saveEditedFiles') {
-  
+
   //var
-  $fileType = (!empty($post['fileType'])) ? '.'.$post['fileType'] : '';
-  $file = (!empty($_POST['newFile'])) ? $_POST['newFile'].$fileType : $_POST['file'];
-  
-  if(saveEditedFiles($savedForm)) {
-    $documentSaved = true; // give documentSaved status
-    StatisticFunctions::saveTaskLog(12,$file); // <- SAVE the task in a LOG FILE
-  } else {     
-    $errorWindow .= $langFile['editFilesSettings_error_save'].' '.$file;
+  $file = (!empty($_POST['newFile'])) ? $_POST['newFile'].$_POST['fileType'] : $_POST['file'];
+
+  if(saveEditedFiles($SAVEDFORM)) {
+    $DOCUMENTSAVED = true; // give documentSaved status
+    // -> tasklog is saved in the saveEditFiles() function
+  } else {
+    $ERRORWINDOW .= $langFile['EDITFILESSETTINGS_ERROR_SAVEFILE'].' '.$file;
   }
 }
 
 // ->> DELETE editFiles File
 if($_GET['status'] == 'deleteEditFiles' && !empty($_GET['file'])) {
 
-  if(@unlink(DOCUMENTROOT.$_GET['file'])) {
-    StatisticFunctions::saveTaskLog(13,$_GET['file']); // <- SAVE the task in a LOG FILE
-  } else
-    $errorWindow .= $langFile['editFilesSettings_deleteFile_error_delete'].' '.$_GET['file'];
-  
-  $savedForm = $_GET['editFilesStatus'];
+  // -> will be deleted in the editFiles() function
+
+  $SAVEDFORM = $_GET['editFilesStatus'];
 }
 
 ?>

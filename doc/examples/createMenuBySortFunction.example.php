@@ -12,7 +12,14 @@ and you have a simple array with links of the pages from this category.
 require('cms/feindura.include.php');
 
 // creates a new Feindura instance
-$myCms = new Feindura();
+$feindura = new Feindura();
+
+?>
+<!DOCTYPE html>
+<html>
+...
+
+<?php
 
 // create the sort function, which we use with the createMenuBySortFunction() method
 function sortByLastEditDate($a,$b) {
@@ -22,41 +29,42 @@ function sortByLastEditDate($a,$b) {
 }
 
 // now we create the menu from the category with ID "1"
-$menu = $myCms->createMenuBySortFunction('sortByLastEditDate','category',1,'table',true,2);
+$menu = $feindura->createMenuBySortFunction('sortByLastEditDate','category',1,array('table',2));
 
 // displays the menu
-foreach($menu as $link) {
-  echo $link;
+foreach($menu as $item) {
+  echo $item['menuItem'];
 }
 
 
 
-/*                              *** RESULT *** 
+                               *** RESULT *** 
 --------------------------------------------------------------------------------
-*/
 
 <table>
-<tr><td>
-<a href="?category=1&amp;page=2" title="Example Page 2">
-Example Page 2
-</a>
-</td>
-<td>
-<a href="?category=1&amp;page=1" title="Example Page 1">
-Example Page 1
-</a>
-</td>
-</tr><tr>
-<td>
-<a href="?category=1&amp;page=4" title="Example Page 4">
-Example Page 4
-</a>
-</td>
-<td>
-<a href="?category=1&amp;page=3" title="Example Page 3">
-Example Page 3
-</a>
-</td></tr>
+  <tbody>
+    <tr><td>
+      <a href="?category=1&amp;page=2" title="Example Page 2">
+      Example Page 2
+      </a>
+    </td>
+    <td>
+      <a href="?category=1&amp;page=1" title="Example Page 1">
+      Example Page 1
+      </a>
+    </td>
+    </tr><tr>
+    <td>
+      <a href="?category=1&amp;page=4" title="Example Page 4">
+      Example Page 4
+      </a>
+    </td>
+    <td>
+      <a href="?category=1&amp;page=3" title="Example Page 3">
+      Example Page 3
+      </a>
+    </td></tr>
+  </tbody>
 </table>
 
 ?>

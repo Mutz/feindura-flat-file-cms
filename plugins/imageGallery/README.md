@@ -17,29 +17,31 @@ You should have received a copy of the GNU General Public License along with thi
 if not,see <http://www.gnu.org/licenses/>.
 _____________________________________________
 
-### VERSION 1.0
+### VERSION 2.1
 
 ### AUTHOR
 Fabian Vogelsteller <http://frozeman.de>
 
 
 ### DESCRIPTION
-This plugin creates automatically an gallery from a folder containing images. On the first load of the plugin in the website,
+This plugin creates automatically an gallery from seletced images. On the first load of the plugin in the website,
 the images will be resized to the size set in the plugin settings and thumbnails will be created.
 
+NOTE
+It will put the image thumbnails in <a..><img></a> tags,
+but when both height and width for the thumbnail are set
+it will only create a <a..></a> and set the image as style="background:url(..)",
+to ensures that the image thumbnails have a fixed size.
+
 ### USAGE
-The imageGallery plugin can be displayed in your website with the showPlugins('imageGallery',$pageId) method from the feindura class (when activated in the page with the $pageId).
+A plugin can be displayed in your website with the showPlugins('contactForm',$pageId) method from the Feindura class (when the this plugin is activated in that page). See http://feindura.org/api/[Implementation]/Feindura.html#showPlugins for more.
 
 ### STYLING
-To style the imageGallery with css use the ".feinduraPlugin_imageGallery" class.
+This plugin will be wraped with a <div class="feinduraPlugins feinduraPlugin_imageGallery" id="feinduraPlugin_imageGallery_<currentPageID>"> to make it easy to style. 
 
-### ADDITIONAL
-You can also add image captions by placing a "texts.txt" or "captions.txt" in the folder where the images are, with the following format:
-filename1.jpg###image text
-filename2.png###another image text
-...
 
 The imageGallery class can also be used without feindura as a image gallery in your websites!
+Just make sure, to set an 1x1 empty gif to the $gallery->emptyImage property.
 
 
 ### USES

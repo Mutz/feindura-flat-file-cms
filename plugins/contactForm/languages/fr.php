@@ -1,6 +1,6 @@
 <?php
 /**
- * FRENCH (FR) language-file for the contactForm plugin
+ * FRENCH (FR) plugin language file
  * 
  * NEEDS a RETURN $pluginLangFile; at the END
  * 
@@ -64,7 +64,7 @@ $pluginLangFile['form_send'] = 'Votre courrier a &eacute;t&eacute; envoy&eacute;
 $pluginLangFile['link_back'] = 'en arri&egrave;re';
 $pluginLangFile['text_mandatoryfields'] = 'champs obligatoires';
 $pluginLangFile['error_mandatoryfields'] = 'Les champs suivants doivent &ecirc;tre remplis:';
-$pluginLangFile['error_captcha'] = '<b>V&eacute;rification a &eacute;t&eacute; &eacute;chou&eacute;!</b><br />SVP v&eacute;rifiez la v&eacute;rification a quatre num&eacute;ros.';
+$pluginLangFile['error_captcha'] = '<b>V&eacute;rification a &eacute;t&eacute; &eacute;chou&eacute;!</b><br>SVP v&eacute;rifiez la v&eacute;rification a quatre num&eacute;ros.';
 $pluginLangFile['field_appellation'] = 'Titre';
 $pluginLangFile['field_appellation_man'] = 'Monsieur';
 $pluginLangFile['field_appellation_woman'] = 'Madame';

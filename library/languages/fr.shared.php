@@ -16,7 +16,7 @@
  */
 /**
  * FRENCH (FR) language-file for the feindura CMS (FRONTEND and BACKEND)
- * 
+ *
  * need a RETURN $frontendLangFile; at the END
  */
 
@@ -24,10 +24,12 @@
 
 // -> GENERAL <-
 
-$sharedLangFile['HEADER_BUTTON_LOGOUT']                     = 'Déconnexion::Déconnexion Cliquez ici pour être.';
+$sharedLangFile['HEADER_BUTTON_LOGOUT']                     = 'Déconnexion Cliquez ici pour être.';
 
-$sharedLangFile['sortablePageList_functions_startPage']     = 'définir cette page comme page d\'acceuil';
-$sharedLangFile['sortablePageList_functions_startPage_set'] = 'cette page est la page d\'acceuil';
+$sharedLangFile['SORTABLEPAGELIST_functions_startPage']     = 'Définir comme page d&#145;accueil';
+$sharedLangFile['SORTABLEPAGELIST_functions_startPage_set'] = 'Cette page est la page d\'acceuil';
+
+$sharedLangFile['LOADING_TEXT_LOAD']                        = 'site en connexion...';
 
 /* date texts */
 
@@ -52,12 +54,11 @@ $sharedLangFile['SEARCH_TEXT_TIME_2']                       = 'secondes';
 // -> ERROR TEXTs
 
 $sharedLangFile['errorWindow_h1']                           = 'une erreur s\'est produite!';
-$sharedLangFile['sortablePageList_setStartPage_error_save'] = '<b>activation de la page d\'accueil impossible.</b>';
-$sharedLangFile['EDITOR_savepage_error_save']               = '<b>Cette page ne pouvait pas être sauvegardée.</b>';
-$sharedLangFile['ADMINSETUP_ERROR_PHPVERSION']              = 'ERREUR<br /><br /><span class="logoname">fein<span>dura</span></span> nécessite au moins la version de PHP'; // PHP 5.2.3
+$sharedLangFile['SORTABLEPAGELIST_setStartPage_error_save'] = '<b>activation de la page d\'accueil impossible.</b>';
+$sharedLangFile['ERROR_SAVEPAGE']                           = '<b>Cette page ne pouvait pas être sauvegardée.</b>';
+$sharedLangFile['ADMINSETUP_ERROR_PHPVERSION']              = 'ERREUR<br><br><span class="feinduraInline">fein<em>dura</em></span> nécessite au moins la version de PHP'; // PHP 5.2.3
 
 // -----------------------------------------------------------------------------------------------
 // RETURN ****************************************************************************************
 // -----------------------------------------------------------------------------------------------
 return $sharedLangFile;
-?>

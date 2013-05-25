@@ -20,16 +20,16 @@
 
   // var
   var pageSaved = false;
-  var pageContent = null;
-  var nonEditableBlocks = new Array();
-  var editableBlocks = new Array();
-  var editableTitles = new Array();
-  var pageToolbars =  new Array();
+  var nonEditableBlocks = [];
+  var editableBlocks = [];
+  var editableTitles = [];
+  var pageToolbars =  [];
 
   var toolTips = null;
 
-  var logo = new Element('a',{ 'href': feindura_url + feindura_currentBackendLocation, 'id': 'feindura_logo', 'class': 'feindura_toolTip', 'title': feindura_langFile.BUTTON_GOTOBACKEND });
-  var topBar = new Element('div',{id: 'feindura_topBar'});
+  var logo = new Element('a',{ 'href': feindura_url + feindura_currentBackendLocation, 'class': 'feindura_logo feindura_toolTip', 'title': feindura_langFile.BUTTON_GOTOBACKEND });
+  var topBar = new Element('div',{id: 'feindura_topBar' });
+  var topBarText = new Element('p',{'html': feindura_langFile.TOPBAR_TIP_FRONTENDEDITING});
   var topBarVisible = (feindura_deactivateFrontendEditing) ? false : true;
 
   var jsLoadingCircle = new Element('div',{'class': 'feindura_loadingCircleHolder'});
@@ -37,6 +37,11 @@
   var finishPicture = new Element('div',{'class':'feindura_editFinishIcon'});
   var editDisabledIcon = new Element('div',{'class':'feindura_editDisabledIcon'});
   var removeLoadingCircle = function(){};
+
+  var isUnloading = false;
+  window.addEvent('beforeunload',function(){
+    isUnloading = true;
+  });
 
   var feinduraMooRTE;
 
@@ -55,19 +60,19 @@
   /* ---------------------------------------------------------------------------------- */
   // ->> SAVE PAGE
   function savePage(pageBlock,type) {
-    if(pageSaved === false && pageContent != pageBlock.get('html')) {
+    if(pageSaved === false && (pageBlock.hasClass('feindura_editPage') || pageBlock.hasClass('feindura_editTitle')) && pageBlock.retrieve('editContent') != pageBlock.get('html')) {
       pageBlock.getChildren('#rteMozFix').destroy();
       // url encodes the string
       var content = encodeURIComponent(pageBlock.get('html')).replace( /\%20/g, '+' ).replace( /!/g, '%21' ).replace( /'/g, '%27' ).replace( /\(/g, '%28' ).replace( /\)/g, '%29' ).replace( /\*/g, '%2A' ).replace( /\~/g, '%7E' );
       // save the page
-      request(pageBlock,feindura_url + feindura_basePath + 'library/controllers/frontendEditing.controller.php','save=true&type='+type+'&category='+pageBlock.retrieve('category')+'&page='+pageBlock.retrieve('page')+'&data='+content,{title: feindura_langFile.ERRORWINDOW_TITLE,text: feindura_langFile.ERROR_SAVE},'post',true);
+      request(pageBlock,feindura_url + feindura_basePath + 'library/controllers/frontendEditing.controller.php','save=true&type='+type+'&language='+pageBlock.retrieve('language')+'&category='+pageBlock.retrieve('category')+'&page='+pageBlock.retrieve('page')+'&data='+content,{title: feindura_langFile.ERRORWINDOW_TITLE,text: feindura_langFile.ERROR_SAVE},'post');
       pageSaved = true;
     }
   }
 
   /* ---------------------------------------------------------------------------------- */
   // FRONTEND EDITING AJAX REQUEST
-  function request(pageBlock,url,data,errorTexts,method,update) {
+  function request(pageBlock, url, data, errorTexts, method) {
 
     // vars
     if(!method) method = 'get';
@@ -80,121 +85,134 @@
       onRequest: function() { //-----------------------------------------------------
 
         // -> TWEEN jsLoadingCircleContainer
-    		if(!pageBlock.contains(loadingFill))
-    		  pageBlock.grab(loadingFill,'top');
-        loadingFill.set('tween',{duration: 100});
-        loadingFill.setStyle('opacity',0);
-        loadingFill.tween('opacity',0.8);
+        if(!pageBlock.contains(loadingFill))
+          pageBlock.grab(loadingFill,'top');
+        loadingFill.set('tween',{duration: 200});
+        loadingFill.fade('hide').fade(0.5);
 
         // -> ADD the LOADING CIRCLE
-        if(!pageBlock.contains(jsLoadingCircle))
-    		  pageBlock.grab(jsLoadingCircle,'top');
-    		centerOnElement(jsLoadingCircle,pageBlock);
-    		removeLoadingCircle = feindura_loadingCircle(jsLoadingCircle, 24, 40, 12, 4, "#000");
-    		jsLoadingCircle.fade('in');
+        if(!document.body.contains(jsLoadingCircle))
+          document.body.grab(jsLoadingCircle,'bottom');
+        centerOnElement(jsLoadingCircle,pageBlock);
+        removeLoadingCircle = feindura_loadingCircle(jsLoadingCircle, 24, 40, 12, 4, "#000");
+        jsLoadingCircle.set('tween',{duration: 200});
+        jsLoadingCircle.fade('hide').fade(1);
       },
-  		onSuccess: function(html) { //-------------------------------------------------
-
-  			// -> fade out the loading fill
-  			loadingFill.set('tween',{duration: 200});
-  			loadingFill.fade('out');
-  			loadingFill.get('tween').chain(function(){
+      onComplete: function() {
+        // -> fade out the loading fill
+        loadingFill.fade(0);
+        loadingFill.get('tween').chain(function(){
           loadingFill.dispose();
-  			});
+        });
 
-  			// -> fade out the loadingCircle
-  			jsLoadingCircle.set('tween',{duration: 200});
-  			jsLoadingCircle.fade('out');
-  			jsLoadingCircle.get('tween').chain(function(){
+        // -> fade out the loadingCircle
+        jsLoadingCircle.fade(0);
+        jsLoadingCircle.get('tween').chain(function(){
           // -> REMOVE the LOADING CIRCLE
           removeLoadingCircle();
           jsLoadingCircle.dispose();
-
-          if(html.contains('####SAVING-ERROR####'))
-            document.body.grab(feindura_displayError(errorTexts.title,errorTexts.text),'top');
-          else {
-            // display finish picture
-            pageBlock.grab(finishPicture,'top');
-            centerOnElement(finishPicture,pageBlock);
-            finishPicture.set('tween',{duration: 400});
-            finishPicture.fade('in');
-            finishPicture.get('tween').chain(function(){
-              finishPicture.fade('out');
-            }).chain(function(){
-              finishPicture.dispose();
-              // -> UPDATE the pageBlock CONTENT
-              if(update)
-                pageBlock.set('html', html+"<p id='rteMozFix' style='display:none'><br></p>");
-            });
-          }
         });
-  		},
-  		// The request will most likely succeed, but just in case, we'll add an
-  		// onFailure method which will let the user know what happened.
-  		onFailure: function() { //-----------------------------------------------------
+      },
+      onSuccess: function(html) { //-------------------------------------------------
 
-        // -> fade out the loading fill
-  			loadingFill.set('tween',{duration: 200});
-  			loadingFill.fade('out');
-  			loadingFill.get('tween').chain(function(){
-          loadingFill.dispose();
-  			});
+        if(html.contains('####SAVING-ERROR####'))
+          document.body.grab(feindura_showError(errorTexts.title,errorTexts.text),'top');
+        else {
+          // display finish picture
+          document.body.grab(finishPicture,'bottom');
+          centerOnElement(finishPicture,pageBlock);
+          finishPicture.set('tween',{duration: 400});
+          finishPicture.fade('in');
+          finishPicture.get('tween').chain(function(){
+            finishPicture.fade('out');
+          }).chain(function(){
+            finishPicture.dispose();
 
-        // -> fade out the loadingCircle
-        if(!pageBlock.contains(jsLoadingCircle))
-          pageBlock.grab(jsLoadingCircle,'top');
-  			jsLoadingCircle.set('tween',{duration: 200});
-  			jsLoadingCircle.fade('out');
-  			jsLoadingCircle.get('tween').chain(function(){
-  			   // -> REMOVE the LOADING CIRCLE
-  			   removeLoadingCircle();
-  			   jsLoadingCircle.dispose();
-  			   // add errorWindow
-           document.body.grab(feindura_displayError(errorTexts.title,errorTexts.text),'top');
-        });
+            // store the actual content to make a dirtyCheck later
+            pageSaved = false;
+            pageBlock.store('editContent',pageBlock.get('html'));
 
-  		}
+          });
+        }
+      },
+      // The request will most likely succeed, but just in case, we'll add an
+      // onFailure method which will let the user know what happened.
+      onFailure: function() { //-----------------------------------------------------
+
+        // prevent showing of the error message when leaving the page
+        if(isUnloading)
+          return;
+
+        // add errorWindow
+        document.body.grab(feindura_showError(errorTexts.title,errorTexts.text),'top');
+      }
     }).send(data);
+  }
+
+  /* ---------------------------------------------------------------------------------- */
+  // REPLACE CONTENT EDIT CONTENT <-> REAL CONTENT
+  function replaceContent(block, mode) {
+
+    if(isUnloading)
+      return;
+
+    new Request.HTML({
+      url: feindura_url + feindura_basePath + 'library/controllers/frontendEditing.controller.php',
+      method: 'post',
+      link: 'cancel',
+      update: block,
+      evalScripts: false,
+      onSuccess: function(responseTree, responseElements, responseHTML, responseJavaScript) {
+
+        // if(mode == 'deactivate')
+          // window.fireEvent('domready');
+
+        // block.set('html',responseHTML);
+
+        // var scriptElement = new Element('script',{text:responseJavaScript});
+        // block.grab(scriptElement,'bottom');
+
+        // Browser.exec(responseJavaScript);
+        
+
+        // if(mode == 'activate') {
+        //   // bring the moorte back
+        //   block.moorte({skin:'rteFeinduraSkin', buttons: MooRTEButtons,location:'pageTop'});
+        //   block.moorte('hide');
+        // }
+      }
+    }).send('replaceContent=true&mode='+ mode +'&page='+ block.retrieve('page') +'&category='+ block.retrieve('category') +'&language='+ block.retrieve('language') +'&xHtml='+ feindura_xHtml);
+
   }
 
   /* ---------------------------------------------------------------------------------- */
   // ->> Center Icon in Element, but moves the center up when the element is scrolled away
   function centerOnElement(icon,element) {
 
-  	// vars
-  	var elementXtop = element.getPosition().x - window.getScroll().x;
-  	var elementYtop = element.getPosition().y - window.getScroll().y;
-  	var elementXbottom = (window.getScroll().x + window.getSize().x) - (element.getPosition().x + element.getSize().x);
-  	var elementYbottom = (window.getScroll().y + window.getSize().y) - (element.getPosition().y + element.getSize().y);
-  	var iconX = 0;
-  	var iconY = 0;
+    // vars
+    // var iconX = 0;
+    // var iconY = 0;
+    // var elementXtop = (window.getScroll().x < element.getPosition().x) ? element.getPosition().x - window.getScroll().x : 0;
+    // var elementYtop = (window.getScroll().y < element.getPosition().y) ? element.getPosition().y - window.getScroll().y : 0;
+    // var elementXbottom = ((element.getPosition().x + element.getSize().x) > (window.getScroll().x + window.getSize().x)) ? element.getSize().x - elementXtop : element.getSize().x - elementXtop;
+    // var elementYbottom = ((element.getPosition().y + element.getSize().y) > (window.getScroll().y + window.getSize().y)) ? window.getSize().y - elementYtop : element.getSize().y - elementYtop;
 
-  	// X
-  	if(element.getPosition().x + element.getSize().x > window.getSize().x) {
-    	if(elementXtop > 0)
-        iconX = (window.getSize().x - elementXtop) / 2;
-    	else if(elementXtop < 0 && elementXbottom < 0)
-        iconX = window.getScroll().x - element.getPosition().x + (window.getSize().x / 2);
-      else if(elementXbottom > 0)
-        iconX = window.getScroll().x - element.getPosition().x + ((window.getSize().x - elementXbottom) / 2);
-    } else
-      iconX = '50%';
+    // console.log('scrollY: '+window.getScroll().y,element.getPosition().y);
 
-  	// Y
-  	if(element.getPosition().y + element.getSize().y > window.getSize().y) {
-    	if(elementYtop > 0)
-        iconY = (window.getSize().y - elementYtop) / 2;
-    	else if(elementYtop < 0 && elementYbottom < 0)
-        iconY = window.getScroll().y - element.getPosition().y + (window.getSize().y / 2);
-      else if(elementYbottom > 0)
-        iconY = window.getScroll().y - element.getPosition().y + ((window.getSize().y - elementYbottom) / 2);
-    } else
-      iconY = '50%';
+    // // X
+    // iconX = ((elementXbottom - elementXtop) / 2) ;
+    // // console.log('elementXbottom: '+elementXbottom,'elementXtop: '+elementXtop,'result: '+iconX);
 
-  	// set the position
+    // // Y
+    // iconY = ((elementYbottom - elementYtop) / 2);
+    // console.log('elementYbottom: '+elementYbottom,'elementYtop: '+elementYtop,'result: '+iconY);
+
+    // set the position
+    // element.setStyle('position','relative');
 		icon.setStyles({
-      left: iconX,
-      top: iconY
+      'position':'fixed',
+      'left': (window.getSize().x / 2), //- (icon.getSize().x / 2),
+      'top': (window.getSize().y / 2) //- (icon.getSize().y / 2)
     });
   }
 
@@ -204,12 +222,12 @@
     // store titles and text
     feindura_storeTipTexts('.feindura_toolTip');
 
-  	// add the tooltips to the elements
-    toolTips = new Tips('.feindura_toolTip',{
+    // add the tooltips to the elements
+    toolTips = new FloatingTips('.feindura_toolTip',{
       className: 'feindura_toolTipBox',
       offset: {'x': 10,'y': 15},
       fixed: false,
-      showDelay: 200,
+      showDelay: 400,
       hideDelay: 0 });
   }
 
@@ -217,8 +235,37 @@
   // ->> deactivate frontend editing
   function deactivate(instant) {
 
-    // remove classes
-    function removeEditClasses() {
+    topBarVisible = false;
+
+    // INSTANT
+    if(instant) {
+      // logo.setStyle('top', '-55px');
+      if(typeOf($$('div.MooRTE.rtePageTop')[0]) !== 'null')
+        $$('div.MooRTE.rtePageTop')[0].setStyle('top', '-25px');
+      topBar.setStyle('top', '-55px');
+
+      document.body.setStyle('padding-top',5);
+      document.body.setStyle('background-position-y',5);
+
+
+    // BY TWEEN
+    } else {
+
+      // set the session var
+      new Request({ url: feindura_url + feindura_basePath + 'library/controllers/frontendEditing.controller.php', link: 'chain' }).send('changeFrontendEditing=true&mode=deactivate');
+
+      // logo.tween('top', '-55px');
+      if(typeOf($$('div.MooRTE.rtePageTop')[0]) !== 'null')
+        $$('div.MooRTE.rtePageTop')[0].tween('top', '-25px');
+      topBar.tween('top', '-55px');
+
+      document.body.morph({'padding-top':'5px','background-position-y':'5px'});
+
+    }
+
+    // document.body.get('morph').chain(function(){
+
+      // remove classes
       $$('div.feindura_editPage, span.feindura_editTitle').each(function(pageBlock) {
         pageBlock.moorte('destroy');
       });
@@ -227,49 +274,26 @@
         pageToolbar.setStyle('display','none');
       });
       nonEditableBlocks.each(function(nonEditableBlock) {
-        nonEditableBlock.removeClass('feindura_editPageDisabled');
         nonEditableBlock.removeProperty('title');
-        toolTips.detach(nonEditableBlock);
+        nonEditableBlock.removeClass('feindura_editPageDisabled');
+        nonEditableBlock.removeEvents();
+        // toolTips.detach(nonEditableBlock);
       });
       editableBlocks.each(function(editableBlock) {
         editableBlock.removeClass('feindura_editPage');
         editableBlock.removeProperty('title');
+
+        // replace editable content with real one
+        replaceContent(editableBlock,'deactivate');
       });
       editableTitles.each(function(editableTitle) {
         editableTitle.removeClass('feindura_editTitle');
         editableTitle.removeProperty('title');
       });
-    }
 
-    topBarVisible = false;
+    // });
 
-    // INSTANT
-    if(instant) {
-      logo.setStyle('top', '-55px');
-      if($$('div.MooRTE.rtePageTop')[0] != null)
-        $$('div.MooRTE.rtePageTop')[0].setStyle('top', '-25px');
-      topBar.setStyle('top', '-55px');
-
-      document.body.setStyle('padding-top',5);
-      document.body.setStyle('background-position-y',5);
-
-      removeEditClasses();
-
-    // BY TWEEN
-    } else {
-
-      // set the session var
-      new Request({ url: feindura_url + feindura_basePath + 'library/controllers/frontendEditing.controller.php' }).send('deactivateFrontendEditing=true');
-
-      logo.tween('top', '-55px');
-      if($$('div.MooRTE.rtePageTop')[0] != null)
-        $$('div.MooRTE.rtePageTop')[0].tween('top', '-25px');
-      topBar.tween('top', '-55px');
-
-      document.body.morph({'padding-top':'5px','background-position-y':'5px'});
-
-      removeEditClasses();
-    }
+    // checkForChanges();
   }
 
   /* ---------------------------------------------------------------------------------- */
@@ -277,7 +301,7 @@
   function activate() {
 
     // set the session var
-    new Request({ url: feindura_url + feindura_basePath + 'library/controllers/frontendEditing.controller.php' }).send('deactivateFrontendEditing=false');
+    new Request({ url: feindura_url + feindura_basePath + 'library/controllers/frontendEditing.controller.php', link: 'chain' }).send('changeFrontendEditing=true&mode=activate');
 
     topBarVisible = true;
 
@@ -288,45 +312,147 @@
       nonEditableBlock.addClass('feindura_editPageDisabled');
       nonEditableBlock.setProperty('title',nonEditableBlock.retrieve('title'));
       toolTips.attach(nonEditableBlock);
+      nonEditableBlock.addEvents({
+        mouseenter: function(e) {
+            editDisabledIcon.inject(this);
+      },
+        mouseleave: function(e) {
+            editDisabledIcon.dispose();
+      }
+      });
     });
     editableBlocks.each(function(editableBlock){
       editableBlock.addClass('feindura_editPage');
       editableBlock.setProperty('title',editableBlock.retrieve('title'));
+
+      // replace real content with editable one
+      replaceContent(editableBlock,'activate'); // also activates moorte
+
+      // bring the moorte back
+      editableBlock.moorte({skin:'rteFeinduraSkin', buttons: MooRTEButtons,location:'pageTop'});
+      editableBlock.moorte('hide');
     });
     editableTitles.each(function(editableTitle){
       editableTitle.addClass('feindura_editTitle');
       editableTitle.setProperty('title',editableTitle.retrieve('title'));
+
+      // bring the moorte back
+      editableTitle.moorte({skin:'rteFeinduraSkin', buttons: MooRTEButtons,location:'pageTop'});
+      editableTitle.moorte('hide');
     });
 
-    /*
-    $$('div.feindura_editPage, span.feindura_editTitle').each(function(pageBlock) {
-      pageBlock.moorte('create');
-    });
-    */
-
-    if($$('div.feindura_editPage, span.feindura_editTitle')[0] != null) {
-      //$$('div.feindura_editPage, span.feindura_editTitle').moorte({skin:'rteFeinduraSkin', buttons: MooRTEButtons,location:'pageTop'})
-      feinduraMooRTE = new MooRTE({elements:'div.feindura_editPage, span.feindura_editTitle',skin:'rteFeinduraSkin', buttons: MooRTEButtons,location:'pageTop'});
+    if(typeOf($$('div.feindura_editPage, span.feindura_editTitle')[0]) !== 'null') {
+      // $$('div.feindura_editPage, span.feindura_editTitle').moorte({skin:'rteFeinduraSkin', buttons: MooRTEButtons,location:'pageTop'});
+      // READD MOORTE
+      // feinduraMooRTE = new MooRTE({elements:'div.feindura_editPage, span.feindura_editTitle',skin:'rteFeinduraSkin', buttons: MooRTEButtons,location:'pageTop'});
       $$('div.MooRTE.rtePageTop')[0].setStyle('top', '-25px');
     }
 
-    logo.tween('top', '0px');
-    if($$('div.MooRTE.rtePageTop')[0] != null)
+    // logo.tween('top', '0px');
+    if(typeOf($$('div.MooRTE.rtePageTop')[0]) !== 'null')
       $$('div.MooRTE.rtePageTop')[0].tween('top', '30px');
     topBar.tween('top', '0px');
     document.body.morph({'padding-top':'60px','background-position-y':'60px'});
 
+    // document.body.get('morph').chain(function(){
+    //   editableBlocks.each(function(editableBlock){
+    //     // replace real content with editable one
+    //     replaceContent(editableBlock,'activate'); // also activates moorte
+    //   });
+    // });
+
+  }
+
+  /* ---------------------------------------------------------------------------------- */
+  // ->> disable frontend editing
+  function disableEditing(pageBlock) {
+
+      if(pageBlock.hasClass('feindura_editPage') || pageBlock.hasClass('feindura_editTitle') || pageBlock.hasClass('feindura_editPageDisabled')) {
+
+        // is already disabled, dont need to be check again later
+        pageBlock.store('firstSelection',false);
+
+        // is pageTITLE
+        if(pageBlock.hasClass('feindura_editPage')) {
+          // remove from the editable blocks array
+          editableBlocks.erase(pageBlock);
+
+          pageBlock.removeClass('feindura_editPage');
+          pageBlock.addClass('feindura_editPageDisabled');
+        }
+        // is pageBLOCK
+        if(pageBlock.hasClass('feindura_editTitle')) {
+          // remove from the editable blocks array
+          editableTitles.erase(pageBlock);
+
+          pageBlock.removeClass('feindura_editTitle');
+          pageBlock.addClass('feindura_editTitleDisabled');
+        }
+
+        // add tip
+        pageBlock.addClass('feindura_toolTip');
+        pageBlock.setProperty('title',feindura_langFile.EDITPAGE_TIP_DISABLED);
+        // store titles and text
+        feindura_storeTipTexts(pageBlock);
+        toolTips.attach(pageBlock);
+
+        pageBlock.moorte('destroy');
+        nonEditableBlocks.push(pageBlock);
+
+        // remove old events
+        pageBlock.removeEvents('focus');
+        pageBlock.removeEvents('blur');
+        pageBlock.removeEvents('mouseover');
+
+        // add new events
+        pageBlock.addEvents({
+          mouseenter: function(e) {
+              editDisabledIcon.inject(this);
+        },
+          mouseover: function(e) {
+              editDisabledIcon.inject(this);
+        },
+          mouseleave: function(e) {
+              editDisabledIcon.dispose();
+        }
+        });
+
+        // RE-ADD MOORTE to all other elements
+        // if(!feindura_deactivateFrontendEditing && typeOf($$('div.feindura_editPage, span.feindura_editTitle')[0]) !== 'null')
+        //   feinduraMooRTE = new MooRTE({elements:$$('div.feindura_editPage, span.feindura_editTitle'),skin:'rteFeinduraSkin', buttons: MooRTEButtons,location:'pageTop'});
+      }
+    }
+
+  function checkForChanges(pageBlock) {
+
+    // -> check the GIVEN PAGEBLOCK
+    if(pageBlock) {
+      if(pageBlock.retrieve('editContent') != pageBlock.get('html')) {
+        disableEditing(pageBlock);
+        return true;
+      } else
+        return false;
+
+    // -> otherwise check ALL EDITABLE BLOCKs and disable, if content has changed
+    } else {
+      $$('div.feindura_editPage, span.feindura_editTitle').each(function(pageBlock) {
+        if(pageBlock.retrieve('editContent') != pageBlock.get('html')) {
+          disableEditing(pageBlock);
+          return;
+        }
+      });
+    }
   }
 
   /* ---------------------------------------------------------------------------------- */
   // ->> create TOP BAR
   function topBarTemplate() {
-    var links = new Array();
-    links[0] = new Element('a',{ 'href': feindura_logoutUrl, 'class': 'feindura_logout feindura_toolTip', 'title': feindura_langFile.BUTTON_LOGOUT });
-    links[1] = new Element('a',{ 'href': feindura_url + feindura_currentBackendLocation, 'class': 'feindura_toBackend feindura_toolTip', 'title': feindura_langFile.BUTTON_GOTOBACKEND });
+    var links = [];
+    links[0] = new Element('a',{ 'href': feindura_logoutUrl, 'class': 'feindura_logout feindura_toolTip', 'title': feindura_langFile.BUTTON_LOGOUT,'text':'X' });
+    links[1] = new Element('a',{ 'href': feindura_url + feindura_currentBackendLocation, 'class': 'feindura_toBackend feindura_toolTip', 'title': feindura_langFile.BUTTON_GOTOBACKEND, 'text':'>' });
 
     // Hide button
-    links[2] =new Element('a',{ 'href': 'javascript:void(0)', 'class': 'feindura_topBarHide'});
+    links[2] = new Element('a',{ 'href': '#', 'onclick':'return false;', 'class': 'feindura_topBarHide feindura_toolTip', 'title': feindura_langFile.TOPBAR_TIP_DEACTIVATEFRONTENDEDITING+'::'});
     links[2].addEvent('mouseup', function(e) {
         e.stop();
         if(topBarVisible) deactivate();
@@ -337,8 +463,11 @@
       topBar.grab(link,'bottom');
     });
 
+    topBarText.inject(topBar);
+    logo.inject(topBar);
+
     return topBar;
-  };
+  }
 
   /* ---------------------------------------------------------------------------------- */
   // ->> create PAGE BAR
@@ -351,22 +480,31 @@
       values.startPageText = feindura_langFile.FUNCTIONS_STARTPAGE;
     }
 
-    var links = new Array();
+    var links = [];
 
-    // setStartPage
-    if(feindura_setStartPage == '1') {
-      links[0] = new Element('a',{ 'href': '#', 'class': 'feindura_startPage' + values.startPageActive + ' feindura_toolTip', 'title': values.startPageText + '::'});
-      links[0].addEvent('click',function(e) {
-        e.stop();
-        pageSaved = true;
-        request(e.target.getParent('div').getNext('div'),feindura_url + feindura_basePath + 'library/controllers/listPages.controller.php','status=setStartPage&category=' + values.categoryId + '&page=' + values.pageId,{'title': feindura_langFile.ERRORWINDOW_TITLE,'text': feindura_langFile.ERROR_SETSTARTPAGE});
-      });
-    }
+    // setStartPage (deactivated)
+    // links[0] = new Element('a',{ 'href': '#', 'class': 'feindura_startPage' + values.startPageActive + ' feindura_toolTip', 'title': values.startPageText + '::'});
+    // links[0].addEvent('click',function(e) {
+    //   e.stop();
+    //   pageSaved = true;
+    //   request(e.target.getParent('div').getNext('div'),feindura_url + feindura_basePath + 'library/controllers/listPages.controller.php','status=setStartPage&category=' + values.categoryId + '&page=' + values.pageId,{'title': feindura_langFile.ERRORWINDOW_TITLE,'text': feindura_langFile.ERROR_SETSTARTPAGE});
+    // });
     // editPage
-    links[1] = new Element('a',{ 'href': feindura_url + feindura_basePath + 'index.php?category=' + values.categoryId + '&page=' + values.pageId + '', 'class': 'feindura_editPage feindura_toolTip', 'title': feindura_langFile.FUNCTIONS_EDITPAGE + '::' });
+    links[0] = new Element('a',{ 'href': feindura_url + feindura_basePath + 'index.php?category=' + values.categoryId + '&page=' + values.pageId + '', 'class': 'feindura_editPage feindura_toolTip', 'title': feindura_langFile.FUNCTIONS_EDITPAGE + '::' });
+
+    // add tooltips
+    feindura_storeTipTexts(links);
+    toolTips.attach(links);
 
     return links;
   }
+
+window.addEvent('load',function(){
+
+    // -> GO TROUGH ALL EDITABLE BLOCKs and disable, if after load something has changed
+    checkForChanges();
+
+});
 
   /* ---------------------------------------------------------------------------------- */
   // ->> DOMREADY
@@ -375,24 +513,41 @@
 
     if(!window.MooTools || window.Prototype) // CHECK js libraries - 2 (first one on the beginning of the script)
       return;
-
+    
     // ->> add TOP BAR
     // ***************
     var topBar = topBarTemplate();
     topBar.inject(document.body,'top');
-    logo.inject(document.body,'top');
     if(!feindura_deactivateFrontendEditing) {
       document.body.setStyle('padding-top','60px');
       document.body.setStyle('background-position-y','60px');
     }
-    document.id('feindura_bodyStyle').destroy(); // removes the <style> tag where it set body padding before the domready event
+    if(document.id('feindura_bodyStyle') !== null)
+      document.id('feindura_bodyStyle').destroy(); // removes the <style> tag where it set body padding before the domready event
 
+    // TOOLTIPS
+    addToolTips();
 
     // ->> GO TROUGH ALL EDITABLE BLOCK
-    $$('div.feindura_editPage, span.feindura_editTitle').each(function(pageBlock) {
+    $$('div.feindura_editPage, span.feindura_editTitle, div.feindura_editPageDisabled').each(function(pageBlock) {
 
       // store title
       pageBlock.store('title',pageBlock.getProperty('title'));
+
+      // STORE page IDS in the elements storage
+      feindura_setPageIds(pageBlock);
+
+      // -> DISABLE CHANGED BLOCKS
+      // disable editBlock if it was changed after loading
+      if(checkForChanges(pageBlock))
+        return;
+      pageBlock.store('firstSelection',true);
+
+      // DECATIVATE DISABLED pageblocks
+      if(pageBlock.hasClass('feindura_editPageDisabled')) {
+        disableEditing(pageBlock);
+        return;
+      }
 
       // store editable blocks in arrays
       if(pageBlock.hasClass('feindura_editPage'))
@@ -400,44 +555,58 @@
       if(pageBlock.hasClass('feindura_editTitle'))
         editableTitles.push(pageBlock);
 
-      // STORE page IDS in the elements storage
-      feindura_setPageIds(pageBlock);
+      // ADD MOORTE to pageBlock
+      if(!feindura_deactivateFrontendEditing) {
+        pageBlock.moorte({skin:'rteFeinduraSkin', buttons: MooRTEButtons,location:'pageTop'});
+        pageBlock.moorte('hide');
+      }
 
       // save on blur
       pageBlock.addEvent('blur', function(e) {
-        var page = document.id(e.target);
+
+        // deactivate the moorte toolbar
+        this.moorte('hide');
+
+        // show topBarText
+        topBarText.setStyle('display','block');
 
         //alert(MooRTE.Elements.linkPop.visible);
-        if(page != null && ((MooRTE.Elements.linkPop && MooRTE.Elements.linkPop.visible === false) || MooRTE.Elements.linkPop == null )) {
-          if(page.hasClass('feindura_editPage'))
-            savePage(page,'content');
-          else if(page.hasClass('feindura_editTitle'))
-            savePage(page,'title');
+        if((typeOf(MooRTE.Elements.linkPop) === 'null' || (MooRTE.Elements.linkPop && MooRTE.Elements.linkPop.visible === false))) {
+          if(this.hasClass('feindura_editPage'))
+            savePage(this,'editContent');
+          else if(this.hasClass('feindura_editTitle'))
+            savePage(this,'title');
         }
       });
       // on focus
       pageBlock.addEvent('focus', function() {
-        pageContent = pageBlock.get('html');
-        if(pageSaved)
-          pageSaved = false;
+
+        // disable editBlock if it was changed before first focus
+        if(this.retrieve('firstSelection') === true  && checkForChanges(this)) {
+          this.blur();
+          return;
+        }
+        this.store('firstSelection',false);
+
+        // store th current content
+        this.store('editContent',this.get('html'));
+
+        // activate the moorte toolbar
+        this.moorte('show');
+
+        // hide topBarText
+        topBarText.setStyle('display','none');
       });
 
-    });
-    $$('div.feindura_editPageDisabled').each(function(pageBlock) {
-      feindura_setPageIds(pageBlock);
-      pageBlock.store('title',pageBlock.getProperty('title'));
-      nonEditableBlocks.push(pageBlock);
-
-      pageBlock.addEvents({
-        mouseenter: function(e) {
-          if(pageBlock.hasClass('feindura_editPageDisabled'))
-            editDisabledIcon.inject(pageBlock);
-      },
-        mouseleave: function(e) {
-          if(pageBlock.hasClass('feindura_editPageDisabled'))
-            editDisabledIcon.dispose();
-      }
+      // on mouse over
+      pageBlock.addEvent('mouseover', function(event) {
+        // disable editBlock if it was changed before first focus
+        if(this.retrieve('firstSelection') === true  && checkForChanges(this)) {
+          this.removeEvent('mouseover',this);
+          return;
+        }
       });
+
     });
 
     // ->> add BAR to EACH PAGE BLOCK
@@ -499,8 +668,6 @@
       pageBar.addEvent('mouseleave', function(e) { if(!pageBlockFocused) pageBar.fade('out'); });
     });
 
-    addToolTips()
-
     // ->> ADD EDITOR
     // **************
 
@@ -509,9 +676,8 @@
       save : { img:27, onClick: function() {
           $$('div.feindura_editPage, span.feindura_editTitle').each(function(page) {
               if(MooRTE.activeField == page) {
-                pageSaved = false;
                 if(page.hasClass('feindura_editPage'))
-                  savePage(page,'content');
+                  savePage(page,'editContent');
                 else if(page.hasClass('feindura_editTitle'))
                   savePage(page,'title');
               }
@@ -519,10 +685,9 @@
         }}
     });
 
-    // -> create editor instance to edit all divs which have the class "feindura_editPage"
-    if(!feindura_deactivateFrontendEditing && $$('div.feindura_editPage, span.feindura_editTitle')[0] != null)
-      //$$('div.feindura_editPage, span.feindura_editTitle').moorte({skin:'rteFeinduraSkin', buttons: MooRTEButtons,location:'pageTop'})
-      feinduraMooRTE = new MooRTE({elements:'div.feindura_editPage, span.feindura_editTitle',skin:'rteFeinduraSkin', buttons: MooRTEButtons,location:'pageTop'});
+    // -> ADD MOORTE editor instance to all divs which have the class "feindura_editPage or feindura_editTitle"
+    // if(!feindura_deactivateFrontendEditing && typeOf($$('div.feindura_editPage, span.feindura_editTitle')[0]) !== 'null')
+    //   feinduraMooRTE = new MooRTE({elements:'div.feindura_editPage, span.feindura_editTitle',skin:'rteFeinduraSkin', buttons: MooRTEButtons,location:'pageTop'});
 
     if(feindura_deactivateFrontendEditing)
       deactivate(true);

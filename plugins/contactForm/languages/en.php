@@ -1,6 +1,6 @@
 <?php
 /**
- * ENGLISH (EN) language-file for the contactForm plugin
+ * ENGLISH (EN) plugin language file
  * 
  * NEEDS a RETURN $pluginLangFile; at the END
  * 
@@ -60,7 +60,7 @@ $pluginLangFile['form_send'] = 'Youre message was succesfully sent!';
 $pluginLangFile['link_back'] = 'back';
 $pluginLangFile['text_mandatoryfields'] = 'Mandatory information';
 $pluginLangFile['error_mandatoryfields'] = 'The following fields have to be filled:';
-$pluginLangFile['error_captcha'] = '<b>Number verification failed!</b><br />Please check the 4-digit verification number.';
+$pluginLangFile['error_captcha'] = '<b>Number verification failed!</b><br>Please check the 4-digit verification number.';
 $pluginLangFile['field_appellation'] = 'appellation';
 $pluginLangFile['field_appellation_man'] = 'Mr';
 $pluginLangFile['field_appellation_woman'] = 'Mrs';
@@ -81,8 +81,8 @@ $pluginLangFile['field_captcha'] = 'Please enter the number into the field.';
 $pluginLangFile['button_send'] = 'SEND';
 
 $pluginLangFile['message_subject'] = 'contact form'; // Websitetitle contact form
-$pluginLangFile['message_title1'] = 'You get a mesage from'; // You get a mesage from the Website title contact formular
-$pluginLangFile['message_title2'] = 'contact formu';
+$pluginLangFile['message_title1'] = 'You got a mesage from the'; // You get a mesage from the Website title contact form
+$pluginLangFile['message_title2'] = 'contact form';
 $pluginLangFile['message_block1_title'] = 'MESSAGE';
 $pluginLangFile['message_block2_title'] = 'FROM';
 $pluginLangFile['message_senddate'] = 'Send on'; // Send on dd.mm.yyyy at 12:00

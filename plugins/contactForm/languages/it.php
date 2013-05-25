@@ -1,7 +1,8 @@
 <?php
 /**
- * ITALIAN (IT) language-file for the contactForm plugin
+ * ITALIAN (IT) plugin language file
  * Traslated in Italian By Raffaele Panariello [Social Service] unuomoinblues@gmail.com
+ * 
  * NEEDS a RETURN $pluginLangFile; at the END
  * 
  * 
@@ -60,7 +61,7 @@ $pluginLangFile['form_send']               = 'Il tuo messaggio &#232; stato invi
 $pluginLangFile['link_back']               = 'indietro';
 $pluginLangFile['text_mandatoryfields']    = 'Le informazioni con l\'asterisco sono obbligatorie.';
 $pluginLangFile['error_mandatoryfields']   = 'I seguenti campi devono essere riempiti:';
-$pluginLangFile['error_captcha']           = '<b>Numero di verifica fallito!</b><br />Si prega di controllare il numero di 4 cifre di verifica.';
+$pluginLangFile['error_captcha']           = '<b>Numero di verifica fallito!</b><br>Si prega di controllare il numero di 4 cifre di verifica.';
 $pluginLangFile['field_appellation']       = 'appellativo';
 $pluginLangFile['field_appellation_man']   = 'Mr';
 $pluginLangFile['field_appellation_woman'] = 'Mrs';

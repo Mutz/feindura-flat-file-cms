@@ -15,12 +15,12 @@
  * You should have received a copy of the GNU General Public License along with this program;
  * if not,see <http://www.gnu.org/licenses/>.
  */
-/** 
+/**
  * This files saves the rating by an ajax request come from the include.php
- * 
+ *
  * @package [Plugins]
  * @subpackage pageRating
- * 
+ *
  */
 
 if(isset($_POST['rating'])) {
@@ -32,24 +32,27 @@ if(isset($_POST['rating'])) {
 
   if($_SESSION['feinduraPlugin_pageRating'][$_POST['page']]['rated'] === 'true')
     die('###RATED###');
-  
+
+  // vars
+  $number = $_POST['pluginNumber'];
+
   // read the page
   $pageContent = GeneralFunctions::readPage($_POST['page'],$_POST['category']);
 
-  $currentSum = $pageContent['plugins']['pageRating']['value'] * $pageContent['plugins']['pageRating']['votes'];
-  $pageContent['plugins']['pageRating']['value'] = ($currentSum + $_POST['rating']) / ++$pageContent['plugins']['pageRating']['votes'];
-  $pageContent['plugins']['pageRating']['value'] = round($pageContent['plugins']['pageRating']['value'],3);
+  $currentSum = $pageContent['plugins']['pageRating'][$number]['valueNumber'] * $pageContent['plugins']['pageRating'][$number]['votesNumber'];
+  $pageContent['plugins']['pageRating'][$number]['valueNumber'] = ($currentSum + $_POST['rating']) / ++$pageContent['plugins']['pageRating'][$number]['votesNumber'];
+  $pageContent['plugins']['pageRating'][$number]['valueNumber'] = round($pageContent['plugins']['pageRating'][$number]['valueNumber'],2);
 
   // ->> save the page
-  if(GeneralFunctions::savePage($pageContent)) {
+  if(GeneralFunctions::savePage($pageContent,false,false)) {
     $_SESSION['feinduraPlugin_pageRating'][$_POST['page']]['rated'] = 'true';
   // ->> on failure, return the unsaved data
   } else {
     $return = '####SAVING-ERROR####';
   }
-  
+
   // return the new rating
-  echo $pageContent['plugins']['pageRating']['value'];
+  echo $pageContent['plugins']['pageRating'][$number]['valueNumber'];
 }
 
 ?>

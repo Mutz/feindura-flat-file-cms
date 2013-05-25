@@ -1,0 +1,850 @@
+// feindura - Flat File Content Management System
+// Copyright (C) Fabian Vogelsteller [frozeman.de]
+//
+// Published under the GNU General Public License
+
+// IE fixes
+#PIE {
+    behavior: url('library/thirdparty/javascripts/PIE.htc');
+}
+
+// Effects
+#boxBasics {
+    border: 1px solid #fff;
+    #shadow > .both(0, 1px, 10px, 0.3, #000, 0, 0px, 50px, 0.05);
+    #border > .rounded(@borderRadius);
+    background-color: #fff;
+}
+#windowBoxBasics {
+    #boxBasics;
+    #shadow > .both(0, 1px, 10px, 0.4, #000, 0, 0px, 50px, 0.05);
+    // #shadow > .drop(0, 1px, 10px, 0.4, #000);
+    // #shadow > .none();
+}
+#boxHeadlineBasics {
+    border: 1px solid #fff;
+    #shadow > .drop(0,1px,4px,0.2);
+    #gradient > .vertical(#fff,#fff,#f0f0f0,0,1);
+    #border > .radius(@borderRadius,@borderRadiusSmall,@borderRadiusSmall,@borderRadius);
+}
+
+// ELEMENT FORMAT
+
+.blue {
+    color: @logoColorBlue !important;
+}
+.brown {
+    color: @colorBrown !important;
+}
+.red {
+    color: @colorRed !important;
+}
+.gray {
+    color: @colorGray !important;
+}
+a.gray:hover, a.gray:focus {
+    color: @logoColorOrange !important;
+}
+
+.hidden {
+    display: none;
+}
+.inBlockSlider.hidden {
+    display: block;
+}
+
+.center {
+    text-align: center;
+}
+.left {
+    text-align: left;
+}
+.right {
+    text-align: right;
+}
+
+[class^="spacer"] {
+    clear: both;
+}
+.spacer {
+    height: @gridGutterWidth;
+}
+.spacer2x {
+    height: @gridGutterWidth * 2;
+}
+.spacer4x {
+    height: @gridGutterWidth * 4;
+}
+.spacerH1 {
+    height: 40px;
+}
+.spacerH2 {
+    height: 40px;
+}
+.spacerH3 {
+    height: 38px;
+}
+.spacerH4 {
+    height: 48px;
+}
+
+div.blockSpacer {
+    position: relative;
+    width: 788px;
+    height: 28px;
+    margin: 25px 5px;
+    background: url("../../images/bg/content_blockSpacer.png") no-repeat;
+}
+
+.row {
+    padding-top: 2px;
+    padding-bottom: 2px;
+
+    div[class^="span"] {
+        line-height: 28px;
+    }
+}
+
+// mark tooltip text
+.toolTipLeft,
+.toolTipRight,
+.toolTipTop,
+.toolTipBottom {
+    cursor: help;
+}
+input.toolTipLeft,
+input.toolTipRight,
+input.toolTipTop,
+input.toolTipBottom,
+textarea.toolTipLeft,
+textarea.toolTipRight,
+textarea.toolTipTop,
+textarea.toolTipBottom {
+    cursor: text;
+}
+.button.toolTipLeft,
+.button.toolTipRight,
+.button.toolTipTop,
+.button.toolTipBottom,
+a.toolTipLeft,
+a.toolTipRight,
+a.toolTipTop,
+a.toolTipBottom {
+    cursor: pointer;
+}
+span.toolTipLeft:not(.badge),
+span.toolTipRight:not(.badge),
+span.toolTipTop:not(.badge),
+span.toolTipBottom:not(.badge),
+label.toolTipLeft,
+label.toolTipRight,
+label.toolTipTop,
+label.toolTipBottom {
+    background: url("../../images/icons/hint_toolTipInfo.png") no-repeat right center;
+    padding-right: 18px;
+}
+span.toolTipLeft.noMark,
+span.toolTipRight.noMark,
+span.toolTipTop.noMark,
+span.toolTipBottom.noMark {
+    background: none;
+    padding-right: 0;
+    cursor: auto;
+}
+
+span.warning {
+    display: inline-block;
+    padding: 3px 0px;
+    padding-left: 20px;
+    background: url("../../images/icons/warning.gif") no-repeat 0px 7px !important;
+    font-size: 12px;
+    color: @colorRed;
+}
+
+span.hint {
+    display: inline-block;
+    padding-left: 18px;
+    background: url("../../images/icons/hint_toolTipInfo.png") no-repeat;
+    background-position: left center;
+    font-size: 12px;
+    color: @colorBrown;
+}
+
+div.alert {
+    #shadow > .drop(0,1px,4px,0.1);
+}
+
+img {
+    max-width: none; // reset the settings from bootstrap, causes problems in ckeditor image
+}
+
+img.thumbnail {
+    display: inline-block;
+    position: relative;
+    padding: 5px;
+    background-color: #fff;
+    border: 1px solid #DDD;
+    #border > .rounded(5px);
+    #shadow > .drop(0,0,5px,0.2);
+}
+
+img.flag {
+    position: relative;
+    margin-top: -5px;
+}
+
+
+.btn {
+    #shadow > .drop(0,1px,3px,0.3);
+}
+
+
+// SHARED between frontend and backend
+
+span.feinduraInline {
+    color: @logoColorOrange !important;
+
+    em {
+        font-style: normal;
+        color: @logoColorBlue !important;
+    }
+}
+
+
+// GENERAL ELEMENTS
+
+mark {
+    background-color: #fef086;
+    color: inherit;
+}
+
+hr {
+    position: relative;
+    height: 0px;
+    margin: 15px 0px;
+    border: none;
+    border-top: 10px dotted #cccccc;
+    clear: both;
+
+    &.small {
+        position: relative;
+        height: 0px;
+        margin: 10px 0px;
+        border: none;
+        line-height: 20px;
+        border-top: 1px solid @colorLightGray;
+    }
+}
+
+label,
+label span {
+    cursor: pointer !important;
+    line-height: 24px !important;
+
+}
+
+h1 {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: normal;
+}
+h2 {
+    font-size: 18px;
+}
+
+
+// LINKS
+
+a, a.link {
+    // padding-left: 18px;
+    color: @logoColorOrange;
+    text-decoration: none;
+    // background: url("../../images/icons/link.gif") no-repeat left center;
+    cursor: pointer !important;
+    outline: none !important;
+}
+a:hover,
+a:focus,
+a.link:hover,
+a.link:focus {
+    color: @logoColorBlue;
+    text-decoration: none;
+}
+a:active,
+a.active,
+a.link:active,
+a.link.active {
+    color: @logoColorOrange;
+    text-decoration: none;
+}
+p a {
+    background-position: 0px 4px;
+}
+
+// image links
+a.image {
+    display: inline-block;
+    padding-left: 0px;
+    background: none;
+}
+
+// anchor targets
+a.anchorTarget {
+    position: relative;
+    display: block;
+    visibility: hidden;
+    padding-left: 0px;
+    height: 0px;
+    top: -50px;
+    background: none;
+}
+
+// delete button
+a.deleteButton {
+  display: block;
+  position: absolute;
+  width: 18px;
+  height: 17px;
+  padding-left: 0;
+  background: url("../../images/buttons/content_deleteButton.png") no-repeat;
+}
+a.deleteButton:hover,
+a.deleteButton:focus {
+  background-position: 0px -16px;
+}
+
+
+// add button
+a.addButton {
+    position: relative;
+    display: block;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    margin: 6px 0;
+    background: url("../../images/buttons/addButton.png") no-repeat;
+
+    &:hover,
+    &:focus {
+        background-position: 0px -24px;
+    }
+    &:active {
+        background-position: 0px -48px;
+    }
+}
+
+a.down {
+    font-weight: bold;
+    padding-left: 16px;
+    background: url("../../images/buttons/down.gif") no-repeat 0px 3px !important;
+}
+a.up {
+    font-weight: bold;
+    padding-left: 16px;
+    background: url("../../images/buttons/up.gif") no-repeat 0px 3px !important;
+}
+
+// fast up link
+a.fastUp {
+    z-index: 3;
+    position: fixed;
+    left: 10px;
+    top: 10px;
+    display: block;
+    width: 54px;
+    height: 54px;
+    text-decoration: none;
+    background: url("../../images/buttons/fastUp.png") no-repeat;
+    }
+a.fastUp:hover, .mainContent a.fastUp:focus {
+    background-position: 0px -54px;
+    }
+
+
+// SHARED between frontend and backend
+
+.headerCornerButtons {
+    z-index: 4;
+    position: absolute;
+    top: -5px;
+    right: 5px;
+    #shadow > .drop(0,1px,2px,0.1);
+    #border > .rounded(@borderRadiusMedium);
+}
+a.logout, a.frontend, a.backend  {
+    @buttonColor: lighten(@logoColorOrange,25%);
+    z-index: 2;
+    height: 31px;
+    padding-top: 7px;
+    padding-bottom: 6px;
+    // font-family: 'Comic Sans MS',"Helvetica Neue", Helvetica, Arial, sans-serif !important;
+    text-align: center;
+    font-size: 28px !important;
+    font-weight: bold;
+    color: #999;
+    #shadow > .none();
+    #shadow > .text(0 2px 1px #fff);
+
+
+    &:hover,
+    &:focus {
+        #gradient > .vertical(@buttonColor,@buttonColor,lighten(@buttonColor,10%));
+        #shadow > .text(0 1px 1px lighten(@buttonColor,15%));
+    }
+}
+a.frontend {
+    padding: 5px;
+    padding-top: 3px;
+    padding-bottom: 1px;
+    height: 40px;
+
+    img {
+        // grayscale
+        filter: gray; /* IE5+ */
+        -webkit-filter: grayscale(1);
+        -moz-filter: grayscale(1);
+        -o-filter: grayscale(1);
+    }
+
+    &:hover img {
+        filter: none;
+        -webkit-filter: grayscale(0);
+        -moz-filter: grayscale(0);
+        -o-filter: grayscale(0);
+    }
+}
+
+
+// STATUS BUTTON
+a.status {
+    display: inline-block;
+    width: 27px;
+    height: 27px;
+    text-decoration: none;
+    padding-left: 0px;
+
+    // for pages
+    &.public {
+        background: url("../../images/icons/page_public.png") no-repeat;
+    }
+    &.nonpublic {
+        background: url("../../images/icons/page_nonpublic.png") no-repeat;
+    }
+}
+
+// for categories
+.categoryHeader a.status.public {
+    background: url("../../images/icons/category_public.png") no-repeat;
+}
+.categoryHeader a.status.nonpublic {
+    background: url("../../images/icons/category_nonpublic.png") no-repeat;
+}
+
+
+// TABS MENU
+
+ul.nav-tabs a {
+    background: none;
+    font-weight: bold;
+    color: @logoColorBlue;
+}
+ul.nav-tabs a.active {
+    background-color: @colorLightGray;
+    color: @logoColorBlue;
+}
+ul.nav-tabs a:hover,
+ul.nav-tabs a:focus {
+    background-color: @logoColorBlue;
+    color: #fff;
+    #shadow > .text(none);
+}
+
+
+// HORIZONTAL MENU
+
+menu.horizontal {
+    position: relative;
+    margin: 0 auto;
+    padding: 0;
+
+    li {
+        display: inline-block;
+        position: relative;
+        // float: left;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+}
+
+
+// VERTICAL MENU
+
+menu.vertical {
+    margin: 0;
+    padding: 0;
+
+    li {
+        position: relative;
+        overflow: hidden;
+        margin: 0px;
+        padding: 0px;
+        width: 100%;
+        height: 35px;
+        list-style: none;
+        white-space: nowrap;
+    }
+}
+
+
+// COLORED LIST or TABLE with two colors
+.coloredList {
+    font-size: 11px;
+
+    a {
+        background-position: 1px 1px;
+    }
+
+    li:nth-child(even),
+    tr:nth-child(even), {
+        background-color: #eef7f7;
+    }
+    li:nth-child(odd),
+    tr:nth-child(odd) {
+        background-color: #e2eeef;
+    }
+
+    li {
+        padding: 5px 10px;
+        margin: 0px;
+        list-style: none;
+    }
+    td {
+        padding: 5px 0px;
+        padding-left: 5px;
+        padding-right: 2px;
+    }
+
+    img[alt="flag"] {
+        position: relative;
+        top: -1px;
+    }
+
+    li:hover,
+    tr:hover {
+        background-color: #fff;
+    }
+}
+ul.coloredList {
+    padding: 0px;
+    margin: 0px;
+}
+table.coloredList {
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+}
+
+
+
+// ELEMENTS
+
+.dimmContainer {
+    position: fixed;
+    z-index: @zindexInFrontend;
+    display: none;
+    width: 100%;
+    height: 100%;
+    background: url("../../images/bg/dimmContainer.png") repeat;
+    background-color: transparent;
+}
+
+#documentSaved {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: @zindexInFrontend + 1;
+    display: none;
+    margin-top: -140px;
+    margin-left: -123px;
+    width: 246px;
+    height: 264px;
+    background: url("../../images/icons/documentSaved.png") no-repeat;
+}
+
+div.divBlocked {
+    z-index: 7;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0 -@blockContentPadding;
+    background-color: #fff;
+    #border > .rounded(@borderRadius);
+    #transform > .opacity(0.5);
+
+    > div {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        width: 500px;
+        margin-left: -250px;
+        font-size: 20px;
+        font-weight: bold;
+        color: #fff;
+        text-align: center;
+        #shadow > .text(0 1px 1px #333);
+    }
+}
+#contentBlocked {
+    margin: 0;
+    width: @appWidth;
+    background: transparent url("../../images/bg/mainBodyFull.png") repeat;
+    #border > .rounded(0);
+
+    > div {
+        top: 250px;
+    }
+}
+
+#loadingBox {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    z-index: @zindexInFrontend + 20;
+    display: none;
+    margin-left: -165px;
+    padding: 30px 20px;
+    width: 330px;
+    border: 1px solid #fff;
+    text-align: center;
+    #boxBasics;
+    #PIE;
+}
+
+.insetBlock {
+    position: relative;
+    padding: 9px;
+    margin-top: @gridGutterWidth;
+    margin-bottom: @gridGutterWidth;
+    background-color: @insetBlockColor;
+    border: 1px solid @insetBlockBorderColor;
+    #shadow > .inner(0,0,3px,0.2);
+    #border > .rounded(@borderRadiusMedium);
+
+    @insetBlockMargin: -5px;
+    @insetBlockRoundBorder: 6px;
+
+    // change divBlocked for insetBLock
+    div.divBlocked {
+        margin: 0 -9px;
+    }
+
+    h2 {
+        border-bottom: 1px solid #c4c4c4;
+        margin: @insetBlockMargin @insetBlockMargin !important;
+        margin-bottom: 15px !important;
+        padding: 10px 20px !important;
+        text-align: center;
+        color: #a3a3a3;
+        #shadow > .text(0 1px 1px #fff);
+        #border > .radius(@insetBlockRoundBorder,0,0,@insetBlockRoundBorder);
+        #gradient > .vertical(#f3f3f3,#f3f3f3,#fff,0,1);
+    }
+    hr.small {
+        margin: 20px @insetBlockMargin;
+    }
+    .insetBlockListPages {
+        position: relative;
+        max-height: 188px;
+        min-height: 2px;
+        padding: 0px;
+        margin: 0 @insetBlockMargin;
+        margin-top: -16px;
+        border-top: 1px solid #cccccc;
+        overflow: auto;
+        #border > .radius(0,@insetBlockRoundBorder,@insetBlockRoundBorder,0);
+    }
+}
+
+.messagePopUp.feindura {
+    z-index: @zindexInFrontend + 30;
+    visibility: hidden;
+    position: fixed;
+    top: 0;
+    left: 50%;
+    margin-left: -300px;
+    width: 600px;
+
+    #3Dtransform > .perspective(300px);
+
+
+    .alert {
+        #3Dtransform > .animation(0.7s,1,messagePopUpPerspective);
+        #3Dtransform > .transform(rotateX(0.1deg));
+
+
+        padding: 20px;
+        margin: 0;
+        margin-top: 20px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 15px;
+        #shadow > .drop(0,3px,15px,0.2);
+    }
+}
+
+@-webkit-keyframes messagePopUpPerspective {
+    0% { #3Dtransform > .transform(rotateX(-90deg)); #3Dtransform > .animation-timing-function(); }
+    35% { #3Dtransform > .transform(rotateX(-50deg));}
+    100% { #3Dtransform > .transform(rotateX(0.1deg));}
+}
+@-moz-keyframes messagePopUpPerspective {
+    0% { #3Dtransform > .transform(rotateX(-90deg)); #3Dtransform > .animation-timing-function(); }
+    35% { #3Dtransform > .transform(rotateX(-50deg));}
+    100% { #3Dtransform > .transform(rotateX(0.1deg));}
+}
+@-o-keyframes messagePopUpPerspective {
+    0% { #3Dtransform > .transform(rotateX(-90deg)); #3Dtransform > .animation-timing-function(); }
+    35% { #3Dtransform > .transform(rotateX(-50deg));}
+    100% { #3Dtransform > .transform(rotateX(0.1deg));}
+}
+// @-keyframes messagePopUpPerspective {
+//     0% { #3Dtransform > .transform(rotateX(-90deg)); #3Dtransform > .animation-timing-function(); }
+//     10% { #3Dtransform > .transform(rotateX(-50deg));}
+//     100% { #3Dtransform > .transform(rotateX(0.1deg));}
+// }
+
+div.smallLoadingCircle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 20px;
+    margin-top: -15px;
+    margin-left: -15px;
+}
+
+iframe#fileManagerFrame {
+    margin: -20px -14px;
+    width: 732px;
+    height: 470px;
+}
+
+.tagCloud {
+    max-height: 450px;
+    line-height: 35px;
+    padding: 20px 15px;
+    text-align: center;
+    overflow: auto;
+
+    span, a {
+        background: none !important;
+        padding: 0 !important;
+        color: #668CA6 !important;
+        // text-transform:capitalize;
+    }
+}
+
+
+// FORMS
+
+input[type="number"] {
+    width: 70px !important;
+    text-align: center;
+}
+
+textarea {
+    line-height: 25px;
+    font-size: 14px;
+}
+
+// autogrow
+textarea.autogrow {
+  overflow-y: auto;
+  resize: none;
+  #transition > .property(height,100ms, ease-out)
+}
+
+select[multiple="multiple"] {
+    width: 250px;
+    max-height: 150px;
+    vertical-align: top;
+    border-color: #ccc;
+    background: #fdfdfd;
+    font-size: 16px;
+    font-family: Calibri, Helvetica, Sans-Serif;
+    #border > .rounded(@borderRadiusMedium);
+    #shadow > .inner(0,0,5px,0.2);
+}
+
+
+// INPUT IMAGE BUTTONS
+
+input.button,
+a.button {
+    position: relative;
+    display: inline-block;
+    border: none;
+    padding: 0;
+    text-decoration: none;
+}
+
+a.button.center,
+input.submit.button.center {
+    left: 50%;
+    margin-left: -26px !important;
+}
+
+// SUBMIT
+input.submit,
+a.submit,
+a.ok {
+    width: 55px !important;
+    height: 55px !important;
+    background: url("../../images/buttons/form_submit.png") no-repeat;
+    cursor: pointer;
+}
+input.submit:hover,
+a.submit:hover,
+a.ok:hover,
+input.submit:focus,
+a.submit:focus,
+a.ok:focus {
+      background-position: 0 -55px;
+}
+input.submit:active,
+a.submit:active,
+a.ok:active {
+      background-position: 0 0;
+}
+
+// CANCEL
+input.cancel,
+a.cancel {
+    width: 55px !important;
+    height: 55px !important;
+    background: url("../../images/buttons/form_cancel.png") no-repeat;
+    cursor: pointer;
+}
+input.cancel:hover,
+a.cancel:hover,
+input.cancel:focus,
+a.cancel:focus {
+    background-position: 0 -55px;
+}
+input.cancel:active,
+a.cancel:active {
+    background-position: 0 0;
+}
+
+input.thumbnailUpload {
+    position: relative;
+    width: 75px;
+    height: 90px;
+    background: url("../../images/buttons/thumbnailUpload.png") no-repeat;
+
+    &:hover {
+        background-position: 0px -90px !important;
+    }
+}

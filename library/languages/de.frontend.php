@@ -16,7 +16,7 @@
  */
 /**
  * GERMAN (DE) language-file for the feindura CMS (FRONTEND)
- * 
+ *
  * need a RETURN $frontendLangFile; at the END
  */
 
@@ -25,15 +25,19 @@
 // -> GENERAL <-
 */
 
-$frontendLangFile['HEADER_TIP_GOTOBACKEND']          = 'Feindura::Klick hier um zum Backend zu gelangen.';
-$frontendLangFile['PAGEFUNCTIONS_TIP_EDITINBACKEND'] = 'Seite im Backend bearbeiten';
+$frontendLangFile['HEADER_TIP_GOTOBACKEND']               = 'Feindura::Klick hier um zum Backend zu gelangen.';
+$frontendLangFile['PAGEFUNCTIONS_TIP_EDITINBACKEND']      = 'Seite im Backend bearbeiten';
 
-$frontendLangFile['EDITPAGE_TIP_DISABLED']           = 'Bearbeiten der Seite nicht möglich::Die Seite enthält [i]<script>[/i] Tags und kann deshalb nur im Backend bearbeitet werden.';
+$frontendLangFile['EDITPAGE_TIP_DISABLED']                = 'Bearbeiten im frontend nicht möglich::Der Inhalt wurde durch Scripte verändert.';
+$frontendLangFile['TOPBAR_TIP_FRONTENDEDITING']           = 'Wähle eine bearbeitbares Feld aus, um mit dem bearbeiten zu beginnen';
+$frontendLangFile['TOPBAR_TIP_DEACTIVATEFRONTENDEDITING'] = 'Frontend-Bearbeitung deaktivieren';
+
 
 // FRONTEND ERROR TEXTS
 
 $frontendLangFile['PAGE_ERROR_NOPAGE']               = 'Die angeforderte Seite existiert nicht.';
 $frontendLangFile['PAGE_ERROR_PAGENOTPUBLIC']        = 'Die angeforderte Seite ist deaktiviert.';
+$frontendLangFile['INFO_MAINTENACE']                 = 'Die Webseite steht in kürze zur Verfügung.';
 
 
 // DATE TEXTS
@@ -51,5 +55,3 @@ $frontendLangFile['PAGE_TEXT_MORE']                  = 'mehr';
 // RETURN ****************************************************************************************
 // -----------------------------------------------------------------------------------------------
 return $frontendLangFile;
-
-?>

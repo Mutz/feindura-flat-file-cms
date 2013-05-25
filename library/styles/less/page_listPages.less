@@ -1,0 +1,409 @@
+// feindura - Flat File Content Management System
+// Copyright (C) Fabian Vogelsteller [frozeman.de]
+//
+// Published under the GNU General Public License
+
+
+.block.listPages {
+    margin-bottom: 30px;
+    #border > .radius(@borderRadius,@borderRadiusSmall,@borderRadiusSmall,@borderRadius);
+
+    > h1 {
+        position: relative;
+        z-index: 0;
+        padding-bottom: 30px;
+        margin-bottom: -13px;
+        color: #a4a4a4;
+        font-size: 20px;
+        font-weight: normal;
+        #shadow > .text(0 2px 0px #fff);
+        #shadow > .drop(0,0,5px,0.2);
+    }
+
+    span.toolTipTop,
+    span.toolTipBottom,
+    span.toolTipLeft,
+    span.toolTipRight {
+        background: none;
+        padding: 0;
+    }
+
+
+    // BLOCK INSIDE LISTPAGES
+    .block {
+        z-index: 1;
+        margin: 0;
+        margin-bottom: -5px;
+        #shadow > .none();
+
+        // > div {
+        //     #shadow > .none();
+        // }
+
+        .content {
+            padding: 5px 20px;
+        }
+
+        > h1 {
+            padding-bottom: 10px !important;
+            margin-bottom: 6px;
+            #border > .radius(@borderRadius,@borderRadiusSmall,@borderRadiusSmall,@borderRadius);
+
+            &:hover {
+                #border > .radius(@borderRadius,@borderRadiusSmall,@borderRadiusSmall,@borderRadius);
+            }
+
+            > a {
+                padding-top: 12px;
+                margin-left: -35px;
+                background-position: right 8px; // overwrites the slide in link in contentBlock.less
+                width: 100%;
+
+                > span {
+                    cursor: pointer;
+                }
+            }
+
+            img.blockH1Icon {
+                top: -3px;
+                left: 3px;
+                margin-right: 3px;
+            }
+        }
+
+        // CATEGORY HEADER
+        div.categoryHeader {
+            z-index: 2;
+            position: absolute;
+            top: 13px;
+            right: 90px;
+
+            a.status {
+                position: absolute;
+                top: 0;
+                right: 193px;
+            }
+
+            div.functions {
+                z-index: 6;
+                position: absolute;
+                top: 0;
+                height: 27px;
+            }
+
+            a.createPage {
+                display: block;
+                width: 27px;
+                height: 27px;
+                background-image: url("../../images/buttons/listPages_createPage.png");
+                background-repeat: no-repeat;
+                background-position: 0 0;
+
+                &:hover,
+                &:focus {
+                    background-color: #fff;
+                    #border > .rounded(4px);
+                    #shadow > .drop(0,0,5px,0.2);
+                }
+            }
+        }
+
+
+        // LISTPAGES UL
+        ul {
+            position: relative;
+            margin: 15px 0px;
+            // margin-left: -20px;
+            padding: 0px;
+            min-height: 10px;
+
+            li {
+                position: relative;
+                width: @gridRowWidth;
+                margin: 10px 0px;
+                white-space: nowrap;
+                overflow: visible;
+                border: 1px solid #fff;
+                #border > .rounded(@borderRadiusMedium);
+                #shadow > .drop(0,0,5px,0.3);
+
+                &.hasSubCategory {
+                    #border > .radius(@borderRadius,@borderRadius,25px,25px);
+                    background: url('../../images/bg/listPages_pageBar_blue.png') repeat-x;
+                }
+                &:hover {
+                    background: url('../../images/bg/listPages_pageBar_brown.png') repeat-x;
+                }
+                &.active {
+                    border-color: @colorBrown;
+                }
+
+                div.grabBar {
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    height: 35px;
+                    width: 35px;
+                    background: url('../../images/bg/listPages_grabBar.png') no-repeat;
+                    #transform > .opacity(0.3);
+                    cursor: move;
+
+                    &:hover {
+                        #transform > .opacity(0.7);
+                    }
+                }
+
+                // LISTPAGES PAGEBLOCK ELEMENTS
+                > div {
+                    padding: 3px 0px;
+                    height: 27px;
+                    line-height: 27px;
+                    overflow: hidden;
+                    white-space: nowrap;
+                }
+                div.emptyList {
+                    position:relative;
+                    top:-2px;
+                    left:12px;
+                }
+
+                .missingLanguages {
+                    display: inline-block;
+                    width: 27px;
+                    height: 27px;
+                    background: url("../../images/icons/missingLanguages_small.png") no-repeat !important;
+                }
+
+                // page name
+                .name a {
+                    display: inline-block;
+                    height: 27px;
+                    width: 94%;
+                    margin-left: 4px;
+                    background-image: url("../../images/icons/pageIcon_small.png");
+                    background-repeat: no-repeat;
+                    padding-left: 31px;
+                    #content > .truncateText();
+
+                    &.hasSubCategory {
+                        background-image: url("../../images/icons/pageIcon_subCategory_small.png");
+                    }
+                    &.isStartPage {
+                        background-image: url("../../images/icons/pageIcon_startPage_small.png");
+                    }
+                    &.hasSubCategory.isStartPage {
+                        background-image: url("../../images/icons/pageIcon_startPage_subCategory_small.png");
+                    }
+                }
+
+                div.status {
+                    width: 60px;
+                    margin-left: 0; // overwrites the bootstrap span* margin
+                }
+
+                div.functions {
+                    width: 198px;
+                    margin-left: 0; // overwrites the bootstrap span* margin
+                }
+
+                // function links
+                .functions a {
+                    position: relative;
+                    top: -1px;
+                    display: inline-block;
+                    width: 27px;
+                    height: 27px;
+                    padding: 0px;
+                    margin-left: 1px;
+                    background-repeat: no-repeat;
+                    background-position: 0 0;
+                }
+                .functions a:hover,
+                .functions a:focus,
+                .functions a.startPage.active {
+                    background-color: #fff;
+                    #border > .rounded(4px);
+                    #shadow > .drop(0,0,5px,0.2);
+                }
+
+                .functions a.startPage {
+                    background-image: url("../../images/buttons/listPages_startPage.png");
+                }
+                .functions a.frontendEditing {
+                    background-image: url("../../images/buttons/listPages_frontendEditing.png");
+                }
+                .functions a.showInMenu {
+                    background-image: url("../../images/buttons/listPages_showInMenu.png");
+                }
+                .functions a.hideInMenu {
+                    background-image: url("../../images/buttons/listPages_showInMenu.png");
+                    background-position: 0 -27px;
+                }
+                .functions a.editPage {
+                    background-image: url("../../images/buttons/listPages_editPage.png");
+                }
+                .functions a.deletePage {
+                    background-image: url("../../images/buttons/listPages_deletePage.png");
+                }
+                .functions a.uploadPageThumbnail {
+                    background-image: url("../../images/buttons/listPages_uploadPageThumbnail.png");
+                }
+                .functions a.deletePageThumbnail {
+                    background-image: url("../../images/buttons/listPages_deletePageThumbnail.png");
+                }
+            }
+            &.sortablePageList li {
+                cursor: move;
+            }
+        }
+
+
+    }
+
+
+    // LISTPAGES HEADER
+    div.listPagesHead {
+        position: relative;
+        z-index: 1;
+        height: 31px;
+        margin-bottom: -8px;
+        padding: 10px @gridGutterWidth;
+        padding-top: 2px;
+        border-top: 1px solid @colorBrown;
+        font-size: 15px;
+        line-height: 32px;
+        background: lighten(@colorBrown,30%) url("../../images/bg/listPages_headBg.png") repeat-x;
+        color:3C5E91;
+        #border > .radius(0,@borderRadiusSmall,@borderRadiusSmall,0);
+
+        > div {
+            white-space: nowrap;
+        }
+
+        div.name {
+            > div {
+                position: relative;
+                display: inline-block;
+                padding: 0;
+            }
+            input {
+                position: relative;
+                top: 2px;
+                width: 230px;
+                padding-right: 23px;
+                font-size: 15px;
+            }
+
+            a#listPagesFilterCancel {
+                position: absolute;
+                display: none;
+                top: 2px;
+                right: 8px;
+                padding: 0;
+                background: none;
+                font-size: 22px;
+                font-weight: bold;
+                font-family: 'neue helvetica', helvetica, arial;
+                #shadow > .text(none);
+            }
+        }
+    }
+
+
+    // SUBCATEGORY ARROWS
+    div.subCategoryArrowLine {
+        @listPagesArrowSize: 8px;
+
+        position: absolute;
+        // z-index: 1;
+        display: none;
+        left: 0;
+        width: 0;
+        height: 0;
+        top: 0;
+        border: 4px solid #ccc;
+        border-right: none;
+        #border > .radius(0,0,4px,4px);
+
+       &:after,
+       &:before {
+            position: absolute;
+            border: solid transparent;
+            content: '';
+            height: 0;
+            width: 0;
+            pointer-events: none;
+        }
+
+        // top arrows
+        &.up:before {
+            border-left-color: inherit;
+            border-width: @listPagesArrowSize;
+            top: 0;
+            right: -10px;
+            margin-top: -10px;
+        }
+        &.down:before {
+            border-right-color: inherit;
+            border-width: @listPagesArrowSize;
+            top: 0;
+            right: 0;
+            margin-top: -10px;
+        }
+        // bottom arrows
+        &.up:after {
+            border-right-color: inherit;
+            border-width: @listPagesArrowSize;
+            bottom: 0;
+            right: 0;
+            margin-bottom: -10px;
+        }
+        &.down:after {
+            border-left-color: inherit;
+            border-width: @listPagesArrowSize;
+            bottom: 0;
+            right: -10px;
+            margin-bottom: -10px;
+        }
+
+        // colors
+        &.nonCategory {
+            border-color: #fff;
+        }
+        &.categories {
+            border-color: #fff;
+        }
+
+        &.nonCategory.up div.subCategoryInLineArrow {
+            border-bottom-color: #ecb583;
+        }
+        &.nonCategory.down div.subCategoryInLineArrow {
+            border-top-color: #ecb583;
+        }
+        &.categories.up div.subCategoryInLineArrow {
+            border-bottom-color: #9abbf4;
+        }
+        &.categories.down div.subCategoryInLineArrow {
+            border-top-color: #9abbf4;
+        }
+
+        div.subCategoryInLineArrow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            top: 50%;
+            left: -10px;
+            border: solid transparent;
+        }
+        &.up div.subCategoryInLineArrow {
+            margin-top: -13px;
+            border-bottom-color: inherit;
+            border-width: @listPagesArrowSize;
+        }
+        &.down div.subCategoryInLineArrow {
+            margin-top: -3px;
+            border-top-color: inherit;
+            border-width: @listPagesArrowSize;
+        }
+    }
+}

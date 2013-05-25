@@ -16,16 +16,18 @@
  */
 /**
  * ITALIAN (IT) language-file for the feindura CMS (FRONTEND and BACKEND)
- * 
+ *
  * need a RETURN $frontendLangFile; at the END
  */
 
 
 // -> GENERAL <-
 
-$sharedLangFile['HEADER_BUTTON_LOGOUT']                     = 'Disconnetti::Clicca qui per uscire da feindura e rifare il login.';
-$sharedLangFile['sortablePageList_functions_startPage']     = 'Imposta Come Pagina Iniziale';
-$sharedLangFile['sortablePageList_functions_startPage_set'] = 'Pagina Iniziale';
+$sharedLangFile['HEADER_BUTTON_LOGOUT']                     = 'Clicca qui per uscire da feindura e rifare il login.';
+$sharedLangFile['SORTABLEPAGELIST_functions_startPage']     = 'Imposta Come Pagina Iniziale';
+$sharedLangFile['SORTABLEPAGELIST_functions_startPage_set'] = 'Pagina Iniziale';
+
+$sharedLangFile['LOADING_TEXT_LOAD']                        = 'Attendi che la pagina venga caricata..';
 
 /* date texts */
 
@@ -38,10 +40,11 @@ $sharedLangFile['DATE_TEXT_TOMORROW']                       = 'Domani';
 
 $sharedLangFile['SEARCH_TITLE']                             = 'Ricerca pagine';
 $sharedLangFile['SEARCH_TITLE_RESULTS']                     = 'Risultati della ricerca per';
-$sharedLangFile['SEARCH_TEXT_MATCH_CATEGORY']               = 'categoria';
-$sharedLangFile['SEARCH_TEXT_MATCH_SEARCHWORDS']            = 'ricerca parole';
+$sharedLangFile['SEARCH_TEXT_MATCH_ID']                     = 'Corrispondenza ID pagina';
+$sharedLangFile['SEARCH_TEXT_MATCH_CATEGORY']               = 'Categoria';
+$sharedLangFile['SEARCH_TEXT_MATCH_SEARCHWORDS']            = 'Ricerca parole';
 $sharedLangFile['SEARCH_TEXT_MATCH_TAGS']                   = 'Tags';
-$sharedLangFile['SEARCH_TEXT_RESULTS']                      = 'risultati';
+$sharedLangFile['SEARCH_TEXT_RESULTS']                      = 'Risultati';
 $sharedLangFile['SEARCH_TEXT_TIME_1']                       = 'in'; // 12 matches in 0.32 seconds
 $sharedLangFile['SEARCH_TEXT_TIME_2']                       = 'secondi';
 
@@ -49,13 +52,11 @@ $sharedLangFile['SEARCH_TEXT_TIME_2']                       = 'secondi';
 // -> ERROR TEXTs
 
 $sharedLangFile['errorWindow_h1']                           = 'Si &#232; verificato un errore!';
-$sharedLangFile['sortablePageList_setStartPage_error_save'] = '<b>Impossibile impostare la pagina iniziale.</b>';
-$sharedLangFile['EDITOR_savepage_error_save']               = '<b>La pagina non può essere salvata.</b>';
-$sharedLangFile['ADMINSETUP_ERROR_PHPVERSION']              = 'ERRORE<br /><br /><span class="logoname">fein<span>dura</span></span> richiede almeno la versione PHP 5.2.3'; // PHP 5.2.3
+$sharedLangFile['SORTABLEPAGELIST_setStartPage_error_save'] = '<b>Impossibile impostare la pagina iniziale.</b>';
+$sharedLangFile['ERROR_SAVEPAGE']                           = '<b>La pagina non può essere salvata.</b>';
+$sharedLangFile['ADMINSETUP_ERROR_PHPVERSION']              = 'ERRORE<br><br><span class="feinduraInline">fein<em>dura</em></span> richiede almeno la versione PHP 5.2.3'; // PHP 5.2.3
 
 // -----------------------------------------------------------------------------------------------
 // RETURN ****************************************************************************************
 // -----------------------------------------------------------------------------------------------
 return $sharedLangFile;
-
-?>

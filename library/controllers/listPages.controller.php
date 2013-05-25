@@ -22,70 +22,74 @@
 require_once(dirname(__FILE__)."/../includes/secure.include.php");
 
 // VAR
-$opendCategory = false;
+$openCategory = false;
 
-// ->> CHANGE PAGE STATUS
-if(isset($_GET['status']) && $_GET['status'] == 'changePageStatus') {
-    
+// ->> CHANGE MENU STATUS
+if(isset($_GET['status']) && $_GET['status'] == 'changeMenuStatus') {
+
     if($contentArray = GeneralFunctions::readPage($_GET['page'],$_GET['category'])) {
       // change the status
-      $contentArray['public'] = ($_GET['public']) ? false : true;
-      
+      $contentArray['showInMenus'] = ($_GET['showInMenus']) ? false : true;
+
       // save the new status
       if(GeneralFunctions::savePage($contentArray)) {
-        $documentSaved = true;        
-        // ->> save the FEEDS, if activated
-        GeneralFunctions::saveFeeds($_GET['category']);
-        // ->> save the SITEMAP
-        GeneralFunctions::saveSitemap();
-        
+        $DOCUMENTSAVED = true;
+        $NOTIFICATION .= '<div class="alert alert-success">'.$langFile['MESSAGE_TEXT_CHANGEDSHOWINMENU'].'</div>';
+
       } else
-        $errorWindow .= sprintf($langFile['sortablePageList_changeStatusPage_error_save'],$adminConfig['realBasePath']);
-        
+        $ERRORWINDOW .= sprintf($langFile['EDITOR_savepage_error_save'],$adminConfig['basePath']);
+
     } else
-      $errorWindow .= sprintf($langFile['file_error_read'],$adminConfig['realBasePath']);
-  
-  // shows after saving the category open
-  $opendCategory = $_GET['category'];
+      $ERRORWINDOW .= sprintf($langFile['file_error_read'],$adminConfig['basePath']);
+
+  // shows the category open, after saving
+  $openCategory = $_GET['category'];
 }
 
 // ->> CHANGE CATEGORY STATUS
-if(isset($_GET['status']) && $_GET['status'] == 'changeCategoryStatus') {    
-     
-      // change the status
-      $categoryConfig[$_GET['category']]['public'] = ($_GET['public']) ? false : true;
-  
-      // save the new status
-      if(saveCategories($categoryConfig)) {
-        $documentSaved = true;
-        // ->> save the FEEDS, if activated
-        GeneralFunctions::$categoryConfig = $categoryConfig;
-        GeneralFunctions::saveFeeds($_GET['category']);
-        // ->> save the SITEMAP
-        GeneralFunctions::saveSitemap();
-        
-      } else
-        $errorWindow .= sprintf($langFile['sortablePageList_changeStatusPage_error_save'],$adminConfig['realBasePath']);
-   
-   // shows after saving the category open
-   $opendCategory = $_GET['category'];
+if(isset($_GET['status']) &&
+   $_GET['status'] == 'changeCategoryStatus' &&
+   GeneralFunctions::hasPermission('editableCategories',$_GET['category'])) {
+
+  // change the status
+  $categoryConfig[$_GET['category']]['public'] = ($_GET['public']) ? false : true;
+
+  // save the new status
+  if(saveCategories($categoryConfig)) {
+    $DOCUMENTSAVED = true;
+    $NOTIFICATION .= '<div class="alert alert-success">'.$langFile['MESSAGE_TEXT_CHANGEDSTATUS'].'</div>';
+
+    // ->> save the FEEDS, if activated
+    GeneralFunctions::$categoryConfig = $categoryConfig;
+    saveFeeds($_GET['category']);
+    // ->> save the SITEMAP
+    saveSitemap();
+
+  } else
+    $ERRORWINDOW .= sprintf($langFile['SORTABLEPAGELIST_changeStatusPage_error_save'],$adminConfig['basePath']);
+
+ // shows after saving the category open
+ $openCategory = $_GET['category'];
 }
 
 // ->> SET THE STARTPAGE
 if(isset($_GET['status']) && $_GET['status'] == 'setStartPage' && !empty($_GET['page'])) {
-  
-    // sets the new startPage
-    $websiteConfig['startPage'] = $_GET['page'];
-    
-    if(savewebsiteConfig($websiteConfig)) {
-      // give documentSaved status
-      $documentSaved = true;
-      
-    } else $errorWindow .= sprintf($langFile['sortablePageList_setStartPage_error_save'],$adminConfig['realBasePath']);
 
-  
+  // sets the new startPage
+  if( $websiteConfig['startPage'] == $_GET['page'])
+      $websiteConfig['startPage'] = 0;
+  else
+    $websiteConfig['startPage'] = $_GET['page'];
+
+  if(savewebsiteConfig($websiteConfig)) {
+    // give documentSaved status
+    $DOCUMENTSAVED = true;
+
+  } else $ERRORWINDOW .= sprintf($langFile['SORTABLEPAGELIST_setStartPage_error_save'],$adminConfig['basePath']);
+
+
   // shows after saving the category open
-   $opendCategory = $_GET['category'];
+ $openCategory = $_GET['category'];
 }
 
 ?>

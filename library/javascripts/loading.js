@@ -11,113 +11,112 @@
 
     You should have received a copy of the GNU General Public License along with this program;
     if not,see <http://www.gnu.org/licenses/>.
-    
-*
-* 
-* loading.php version 0.3 (require mootools-core AND mootools-more)  */
 
-// fix the layout height
-function layoutFix() {  
-  if($('leftSidebar') != null) {
-    if(($('leftSidebar').offsetHeight + 15) > $('content').offsetHeight) {
-      $('mainBody').setStyle('height',$('leftSidebar').offsetHeight);
-    } else {
-    	$('mainBody').setStyle('height', 'auto');
-    }
-  }
-}
+*
+*
+* loading.php version 2.0.1 (require mootools-core AND mootools-more)  */
+
+
+// vars
+var dimmContainer = new Element('div',{'class':'dimmContainer'});
+
 
 function showDocumentSaved() {
+
+  var documentSaved = $('documentSaved');
+  documentSaved.set('tween',{duration:500});
+
   // start tween
-  $('documentSaved').setStyle('display','block');
-  $('documentSaved').fade('hide');
-  $('documentSaved').tween('opacity','1');
-  
+  documentSaved.setStyle('display','block').fade('hide').fade(1);
+
   // hide the documentsaved, after blending in and out
-  $('documentSaved').get('tween').chain(function() {      
-    $('documentSaved').tween('opacity','0');
-  }).chain(function(){
-    $('documentSaved').setStyle('display','none');
-    $('documentSaved').removeClass('saved');
+  documentSaved.get('tween').chain(function() {
+    documentSaved.fade(0);
+    documentSaved.get('tween').chain(function(){
+      documentSaved.setStyle('display','none');
+      documentSaved.removeClass('saved');
+    });
   });
 }
 
 // create loading circle container
-var jsLoadingCircleContainer = new Element('div', {'style': 'position: relative;margin: auto;width: 100%;height: 100%;'});
-var removeLoadingCircle = false;
+var jsLoadingCircleContainer = new Element('div', {'style': 'position: relative;top:4px;margin: auto;width: 100%;height: 100%;'});
+var removeLoadingCircle = feindura_loadingCircle(jsLoadingCircleContainer, 18, 30, 12, 4, "#000");
+
+// ->> LOADING CIRCLE FUNCTIONS
+
+// -> show loading circle
+function onStartLoadingCircle() {
+
+  var loadingBox = $('loadingBox');
+
+  // -> add to the .mainContent div
+  loadingBox.grab(jsLoadingCircleContainer,'top');
+
+  // set tween
+ loadingBox.set('tween',{duration: 400});
+  // show the loadingCircle
+  loadingBox.setStyle('display','block');
+
+  // add the loading circle
+  if(!removeLoadingCircle)
+    removeLoadingCircle = feindura_loadingCircle(jsLoadingCircleContainer, 18, 30, 12, 4, "#000");
+
+  // blend out after page is loaded
+  window.addEvent('load', function() {
+    loadingBox.tween('opacity','0');
+
+    // disply none the documentsaved, after blending in and out
+    loadingBox.get('tween').chain(function() {
+        removeLoadingCircle();
+        removeLoadingCircle = false;
+        loadingBox.setStyle('display','none');
+        loadingBox.empty();
+    });
+  });
+}
+
+// -> hide loading circle
+function onEndLoadingCircle() {
+
+  // set tween
+  // $('loadingBox').set('tween',{duration: 200});
+  var loadingBox = $('loadingBox');
+
+  // empties the loadingBox, and refill with the loadingCircle
+  if(loadingBox !== null) {
+    loadingBox.empty();
+    loadingBox.grab(jsLoadingCircleContainer,'top');
+    if(!removeLoadingCircle)
+      removeLoadingCircle = feindura_loadingCircle(jsLoadingCircleContainer, 18, 30, 12, 4, "#000");
+    loadingBox.setStyle('display','block');
+    loadingBox.setStyle('opacity','1');
+  }
+}
 
 /* LOADING-CIRCLE when the DOM is loading
 *
 * creates loadingCircle and disappears when domready
 */
 window.addEvent('domready', function() {
-  
-  var loadingBox = $('loadingBox').getChildren('.content');
 
-  // ->> SHOW the loading circle 
-  if($('content') != null && loadingBox != null &&
-     $('documentSaved') != null && !$('documentSaved').hasClass('saved')) {
-    // -> add to the #content div
-    loadingBox.grab(jsLoadingCircleContainer,'top');   
-    
-    // set tween
-    $('loadingBox').set('tween',{duration: 400});    
-    // show the loadingCircle
-    $('loadingBox').fade('show');
-    
-    // add the loading circle
-    removeLoadingCircle = feindura_loadingCircle(jsLoadingCircleContainer, 18, 30, 12, 4, "#000");    
-    
-    // blend out after page is loaded 
-    window.addEvent('load', function() {    
-        $('loadingBox').tween('opacity','0');
-    });
-    
-    // disply none the documentsaved, after blending in and out
-    $('loadingBox').get('tween').chain(function() {
-        removeLoadingCircle();
-        removeLoadingCircle = false;
-        loadingBox.set('html','');
-        $('loadingBox').setStyle('display','none');
-        $('loadingBox').setStyle('opacity','1');
-    });
-    
-  // ->> hide loading circle, when it was not animated
-  } else if(loadingBox != null) {
-    loadingBox.set('html','');
-    $('loadingBox').setStyle('display','none');
-    $('loadingBox').setStyle('opacity','1');
-  }
-  
-  // fix height of the sidebar
-	layoutFix();  
-  
-  // IE HACK for dimContainer
-	if(navigator.appVersion.match(/MSIE ([0-6]\.\d)/) && $('dimContainer') != null) {
-		$('dimContainer').setStyle('height',$(document.body).offsetHeight); //,$('window').getSize().y);
+  // inject the dimmContainer for the backend
+  dimmContainer.inject(document.body,'top');
+
+  // IE HACK for dimmContainer
+	if(navigator.appVersion.match(/MSIE ([0-6]\.\d)/) && dimmContainer !== null) {
+		dimmContainer.setStyle('height',$(document.body).offsetHeight); //,$('window').getSize().y);
 	}
-  
-  // ->> if DOCUMENT SAVED has given the class from the php script
-  if($('documentSaved') != null && $('documentSaved').hasClass('saved')) {
-    // set tween
-    $('dimContainer').set('tween', {duration: 200, transition: Fx.Transitions.Pow.easeOut});
-    // display document saved
-    showDocumentSaved();  
-  }
 });
 
 // LOADING-CIRCLE when the website will be left
+window.addEvent('beforeunload',  function() {
+  onEndLoadingCircle();
+});
+// LOADING-CIRCLE when the website will is left
 window.addEvent('unload',  function() {
-
-  var loadingBox = $('loadingBox').getChildren('.content');
-   
-  // empties the loadingBox, and refill with the loadingCircle
-  if(loadingBox != null) {
-    loadingBox.set('html','');
-    loadingBox.grab(jsLoadingCircleContainer,'top');
-    if(!removeLoadingCircle)
-      feindura_loadingCircle(jsLoadingCircleContainer, 18, 30, 12, 4, "#000");
-
-    $('loadingBox').setStyle('display','block');
-  }  
+  if($('loadingBox') !== null) {
+    $('loadingBox').setStyle('display','none');
+    $('loadingBox').empty();
+  }
 });

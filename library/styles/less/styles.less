@@ -1,0 +1,159 @@
+/*
+ * feindura - Flat File Content Management System
+ * Copyright (C) Fabian Vogelsteller [frozeman.de]
+ *
+ * This program is free software;
+ * you can redistribute it and/or modify it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program;
+ * if not,see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * The MAIN STYLE FILE, which includes all the other .LESS Files.
+ *
+ */
+
+// @import "bootstrap/css/bootstrap.min.css";
+
+// VARS
+
+// Measures
+@appWidth: 1280px;
+
+// Boxes
+@zindexInFrontend: 20000;
+@blockContentPadding: 20px;
+@blockContentMargin: 20px;
+@borderRadius: 10px;
+@borderRadiusMedium: 5px;
+@borderRadiusSmall: 2px;
+@insetBlockColor: #fdfdfd;
+@insetBlockBorderColor: #c0c0c0;
+
+// Colors
+@logoColorBlue: #3A79A5;
+@logoColorOrange: #DD6E1F;
+@colorRed: #A02F00;
+@colorBrown: #d49c5c;
+@colorGray: #999999;
+@colorLightGray: #f0f0f0;
+@colorMiddleGray: #b3b3b3;
+@textColor: #666;
+
+
+
+// FEINDURA CLASS
+// All stylesheet rules are inside the feindura class.
+// Will be add to the <html> in the backend and to each element containing feindura objects in the frontend.
+.feindura {
+
+
+    // .feindura class styles
+    #transition > .duration(0);
+
+
+    // LESS Elements are useful mixins for CSS3 effects
+    // get from CodeKit Framework (elements)
+    @import "elements.less";
+
+
+    // DELETE these LINES FROM the "bootstrap/less/variables.less", to allow these rules to apply
+    @baseFontSize:            14px;
+    @gridColumns:             8;
+    @gridColumnWidth:         81px; // 84px - 2*20px padding of the div.content
+    @gridGutterWidth:         16px;
+    @iconSpritePath:          "../../images/icons/glyphicons-halflings.png";
+    @iconWhiteSpritePath:     "../../images/icons/glyphicons-halflings-white.png";
+
+    // Get bootstrap
+    // get from CodeKit Framework (bootstrap)
+    @import "bootstrap/bootstrap.less";
+
+
+
+    // GENERAL
+    // =======
+    // Contains the main variables and other general elements
+    @import "general.less";
+
+
+    // THIRDPARTY FIXES
+    // ================
+    // Add thirdparty fixes (like for CKEditor, CodeMirror, etc)
+    // Have to be outside the feindura class, so the CKEditor fullscreen works
+    @import "thirdpartyFixes.less";
+
+
+    // LAYOUT
+    // ======
+    // Main layout structure
+    @import "layout.less";
+    @import "sideBars.less";
+
+
+    // ICONS
+    // ======
+    // Icons which are used inline
+    @import "icons.less";
+
+
+    // CONTENT BLOCKS
+    // ==============
+    // All content should be placed inside these blocks
+    .mainContent {
+        @import "contentBlocks.less";
+    }
+
+    // PAGE SPECIFIC STYLES
+    // ====================
+
+    // LOGIN
+    @import "page_login.less";
+
+    // UPDATE
+    @import "page_update.less";
+
+    // DASHBOARD
+    @import "page_dashboard.less";
+
+    // BACKUP
+    @import "page_backup.less";
+
+    // LIST PAGES
+    @import "page_listPages.less";
+
+    // EDITOR
+    @import "page_editor.less";
+
+    // SEARCH
+    @import "page_search.less";
+
+    // PAGE SETUP
+    @import "page_pageSetup.less";
+
+    // USER SETUP
+    @import "page_userSetup.less";
+
+
+    // WINDOW BOX
+    // ==============
+    // the content of the window boxes
+    @import "windowBox.less";
+
+    // WINDOWBOX PAGES
+    @import "windowBox_uploadThumbnail.less";
+
+    // ERROR WINDOW
+    @import "errorWindow.less";
+
+
+    // JS ELEMENT STYLES
+    // ==============
+    @import "js_multipleSelect.less";
+    @import "js_datePicker_feinduraSkin.less";
+}

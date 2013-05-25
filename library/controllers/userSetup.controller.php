@@ -24,43 +24,45 @@ require_once(dirname(__FILE__)."/../includes/secure.include.php");
 
 // VARs
 // ---------------------------------------------------------------------------
-$userInfo = false;
-$userInfoPassword = false;
 $newUserConfig = array();
 
 
 // ****** ---------- CREATE NEW USER
 if((isset($_POST['send']) && $_POST['send'] ==  'userSetup' && isset($_POST['createUser'])) ||
    $_GET['status'] == 'createUser') {
-     
+
   // -> GET highest user id
   $newId = getNewUserId();
-  
+
   if(is_numeric($newId)) {
     if($newId == 1)
-      $userConfig = array(); 
-       
+      $userConfig = array();
+
   // add a new user to the user array
   $userConfig[$newId] = array('id' => $newId);
+
+  // default user settings
+  $userConfig[$newId]['permissions']['websiteSettings'] = true;
+
   if(saveUserConfig($userConfig)) {
-     $userInfo = $langFile['userSetup_createUser_created'];
-     StatisticFunctions::saveTaskLog(25); // <- SAVE the task in a LOG FILE
+     $NOTIFICATION .= '<div class="alert alert-success">'.$langFile['USERSETUP_createUser_created'].'</div>';
+     saveActivityLog(25); // <- SAVE the task in a LOG FILE
   } else { // throw error
-    $errorWindow .= ($errorWindow) // if there is already an warning
-      ? '<br /><br />'.sprintf($langFile['userSetup_error_create'],$adminConfig['realBasePath'])
-      : sprintf($langFile['userSetup_error_create'],$adminConfig['realBasePath']); 
+    $ERRORWINDOW .= ($ERRORWINDOW) // if there is already an warning
+      ? '<br><br>'.sprintf($langFile['USERSETUP_error_create'],$adminConfig['basePath'])
+      : sprintf($langFile['USERSETUP_error_create'],$adminConfig['basePath']);
   }
-     
+
   } else // throw error
-    $errorWindow .= sprintf($langFile['userSetup_error_create'],$adminConfig['realBasePath']);
-    
-  $savedSettings = true;
+    $ERRORWINDOW .= sprintf($langFile['USERSETUP_error_create'],$adminConfig['basePath']);
+
+  $SAVEDSETTINGS = true;
 }
 
 // ****** ---------- DELETE USER
 if(((isset($_POST['send']) && $_POST['send'] ==  'userSetup' && isset($_POST['deleteUser'])) ||
    $_GET['status'] == 'deleteUser')) {
-  
+
   $newUserConfig = $userConfig;
   foreach($newUserConfig as $key => $value) {
     if($value['id'] == $_GET['userId']) {
@@ -69,69 +71,76 @@ if(((isset($_POST['send']) && $_POST['send'] ==  'userSetup' && isset($_POST['de
       unset($newUserConfig[$key]);
     }
   }
-  
+
   if(saveUserConfig($newUserConfig)) {
-    $userInfo = $langFile['userSetup_deleteUser_deleted'].': '.$storedUserName;
-    $documentSaved = true; // set documentSaved status
-    StatisticFunctions::saveTaskLog(26,$storedUserName); // <- SAVE the task in a LOG FILE
+    $NOTIFICATION .= '<div class="alert alert-info">'.$langFile['USERSETUP_deleteUser_deleted'].'<br><strong>'.$storedUserName.'</strong></div>';
+    $DOCUMENTSAVED = true; // set documentSaved status
+    saveActivityLog(26,$storedUserName); // <- SAVE the task in a LOG FILE
   } else
-    $errorWindow .= sprintf($langFile['userSetup_error_save'],$adminConfig['realBasePath']);
-    
-  $savedSettings = true;
+    $ERRORWINDOW .= sprintf($langFile['USERSETUP_error_save'],$adminConfig['basePath']);
+
+  $SAVEDSETTINGS = true;
 }
 
 // ****** ---------- SAVE USERS
 if(isset($_POST['send']) && $_POST['send'] == 'userSetup') {
-  
+
   // var
   $userPassChanged = false;
-    
+  $userPassError = false;
   $newUserConfig = $_POST['users'];
+
   // prepare user POST data
   foreach($newUserConfig as $user => $configs) {
-    //$newUserConfig[$configs['id']] = $configs;
-    //unset($newUserConfig[$user]);
+
+    // transfer the permssions
+    $newUserConfig[$configs['id']]['permissions'] = $userConfig[$configs['id']]['permissions'];
+    $newUserConfig[$configs['id']]['info']        = GeneralFunctions::htmLawed($configs['info'],array('tidy'=>0));
+    $newUserConfig[$configs['id']]['info']        = nl2br($newUserConfig[$configs['id']]['info']);
+    $newUserConfig[$configs['id']]['info']        = str_replace(array("\n","\r"), '', $newUserConfig[$configs['id']]['info']);
+
+    // filter password
     $configs['password'] = XssFilter::text($configs['password']);
     $configs['password_confirm'] = XssFilter::text($configs['password_confirm']);
-    
+
     // CHECK for password change
     if(!empty($configs['password']) && $configs['password'] != $userConfig[$configs['id']]['password']) {
       // check confirmation
       if($configs['password'] == $configs['password_confirm']) {
         $newUserConfig[$configs['id']]['password'] = md5($newUserConfig[$configs['id']]['password']);
-        $userPassChanged = true;        
-        $userInfoPassword[$configs['id']] = '<tr><td clas="left"></td><td><span class="blue">'.$langFile['userSetup_password_success'].'</span></td></tr>';
+        $userPassChanged = true;
+        $NOTIFICATION .= '<div class="alert alert-success">'.$langFile['USERSETUP_password_success'].'</div>';
       } else {
-        $userInfo = $langFile['userSetup_password_confirm_wrong'];
-        $userInfoPassword[$configs['id']] = '<tr><td clas="left"></td><td><span class="red">'.$userInfo.'</span></td></tr>';
         $newUserConfig[$configs['id']]['password'] = $userConfig[$configs['id']]['password'];
+        $NOTIFICATION .= '<div class="alert alert-error">'.$langFile['USERSETUP_password_confirm_wrong'].'</div>';
+        $userPassError = true;
       }
     } else
       $newUserConfig[$configs['id']]['password'] = $userConfig[$configs['id']]['password'];
-    
+
     // clear the password confirm var
     unset($newUserConfig[$configs['id']]['password_confirm']);
-    
-    // get the username which was saved
-    $savedUsername = ($_POST['savedUserId'] = $configs['id']) ? $configs['username'] : '';
   }
-  
+
   ksort($newUserConfig);
-  
+
+
   if(saveUserConfig($newUserConfig)) {
-    $documentSaved = true; // set documentSaved status
+
+    if(!$userPassError)
+      $DOCUMENTSAVED = true; // set documentSaved status
     if($userPassChanged)
-      StatisticFunctions::saveTaskLog(27,$savedUsername); // <- SAVE the task in a LOG FILE
+      saveActivityLog(27,$savedUsername); // <- SAVE the task in a LOG FILE
     else
-      StatisticFunctions::saveTaskLog(28,$savedUsername); // <- SAVE the task in a LOG FILE
+      saveActivityLog(28,$savedUsername); // <- SAVE the task in a LOG FILE
   } else
-    $errorWindow .= sprintf($langFile['userSetup_error_save'],$adminConfig['realBasePath']);
-    
-  $savedSettings = true;
+    $ERRORWINDOW .= sprintf($langFile['USERSETUP_error_save'],$adminConfig['basePath']);
+
+  $SAVEDSETTINGS = true;
 }
 
 // RE-INCLUDE
-if($savedSettings) {
+if($SAVEDSETTINGS) {
   unset($userConfig);
   $userConfig = @include(dirname(__FILE__)."/../../config/user.config.php");
 }

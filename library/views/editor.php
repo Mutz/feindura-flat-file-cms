@@ -2,20 +2,20 @@
 /**
  * feindura - Flat File Content Management System
  * Copyright (C) Fabian Vogelsteller [frozeman.de]
- * 
+ *
  * This program is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program;
  * if not,see <http://www.gnu.org/licenses/>.
- * 
+ *
  * sites/editor.php
- * 
+ *
  * @version 2.0
  */
 
@@ -24,751 +24,419 @@
  */
 require_once(dirname(__FILE__)."/../includes/secure.include.php");
 
-// ->> SHOW the FORM
-echo '<form action="index.php?category='.$_GET['category'].'&amp;page='.$_GET['page'].'" method="post" accept-charset="UTF-8" id="editorForm" class="Page'.$_GET['page'].'">
-      <div>
-      <input type="hidden" name="save" value="true" />
-      <input type="hidden" name="category" value="'.$_GET['category'].'" />
-      <input type="hidden" name="id" value="'.$_GET['page'].'" />
-      <input type="hidden" name="savedBlock" id="savedBlock" value="" />
-      </div>';
+// -> available VARs from the editor.controller.php
+// string   $pageTitle
 
-/**
- * Include the editor
- */
-if(!$newPage)
-  include_once(dirname(__FILE__).'/../includes/editor.include.php');
-  
+// -> available VARs from index.php -> subMenu
+// array    $missingLanguages
+
+
+// CREATE BREADCRUMB MENU
+// loads the $breadCrumbsArray
+$breadCrumbsArray = GeneralFunctions::createBreadCrumbsArray($page,$category);
+
+if(count($breadCrumbsArray) != 1)
+  unset($breadCrumbsArray[0]);
+
+if(!$NEWPAGE && is_array($breadCrumbsArray)) {
+
+  // vars
+  $breadCrumbPageIcon = ($keyNumber === 0) ? '<i class="icons breadCrumbStartPage" style="position:absolute;top: 0px;left: -3px;"></i>' : '<i class="icons breadCrumbPage" style="position:absolute;top: 0px;left: -1px;"></i>';
+  $breadCrumbCategoryIcon = '<i class="icons breadCrumbCategory" style="position:absolute;top: 0px;left: -1px;"></i>';
+  $breadCrumbSubCategoryIcon = '<i class="icons breadCrumbCategory" style="position:absolute;top: 0px;left: -1px;"></i>';
+
+
+  echo '<div class="breadCrumbs">';
+    echo '<div class="start"></div>';
+    foreach ($breadCrumbsArray as $keyNumber => $breadCrumb) {
+
+      $breadCrumbCategoryHref = 'href="index.php?site=pages&amp;category='.$breadCrumb['category'].'#categoryAnchor'.$breadCrumb['category'].'"';
+      $breadCrumbPageHref = ($breadCrumb == $pageContent)
+        ? 'href="#" onclick="return false;"'
+        : 'href="index.php?page='.$breadCrumb['id'].'&amp;category='.$breadCrumb['category'].'"';
+
+      $markBreadCrumb = ($breadCrumb['id'] == $pageContent['id']) ? ' class="toolTipBottom currentPage"' : 'class="toolTipBottom"';
+
+      echo '<div class="middle">';
+        if($breadCrumb['category'] !== 0) {
+          echo '<a '.$breadCrumbCategoryHref.' class="toolTipBottom" title="::'.strip_tags(str_replace('"', '&quot;', GeneralFunctions::getLocalized($categoryConfig[$breadCrumb['category']],'name'))).'">'.$breadCrumbCategoryIcon.GeneralFunctions::getLocalized($categoryConfig[$breadCrumb['category']],'name').'</a>';
+          echo '</div><div class="separator"></div><div class="middle">';
+        }
+        // echo '</div>';
+        // echo '<div class="arrow"></div>';
+        // echo '<div class="middle">';
+        echo '<a '.$breadCrumbPageHref.$markBreadCrumb.' title="::'.strip_tags(str_replace('"', '&quot;', GeneralFunctions::getLocalized($breadCrumb,'title'))).'">'.$breadCrumbPageIcon.GeneralFunctions::getLocalized($breadCrumb,'title').'</a>';
+      echo '</div>';
+
+      if($breadCrumb !== end($breadCrumbsArray))
+        echo '<div class="arrow"></div>';
+    }
+
+    if($breadCrumb['subCategory']) {
+      $breadCrumbSubCategoryHref = 'href="index.php?site=pages&amp;category='.$breadCrumb['subCategory'].'#categoryAnchor'.$breadCrumb['subCategory'].'"';
+
+      echo '<div class="arrow"></div>';
+      echo '<div class="middle">';
+        echo '<a '.$breadCrumbSubCategoryHref.' class="toolTipBottom" title="::'.strip_tags(str_replace('"', '&quot;', GeneralFunctions::getLocalized($categoryConfig[$breadCrumb['subCategory']],'name'))).'">'.$breadCrumbSubCategoryIcon.GeneralFunctions::getLocalized($categoryConfig[$breadCrumb['subCategory']],'name').'</a>';
+      echo '</div>';
+    }
+
+    echo '<div class="end"></div>';
+  echo '</div>';
+  // echo '<div class="spacer"></div>';
+  echo '<br style="clear:both;">';
+}
+
+// ->> SHOW the FORM
 ?>
+<form action="index.php?category=<?php echo $_GET['category']; ?>&amp;page=<?php echo $_GET['page']; ?>" method="post" accept-charset="UTF-8" id="editorForm" class="Page<?php echo $_GET['page']; ?>">
+<div>
+  <input type="hidden" name="save" value="true">
+  <input type="hidden" name="category" value="<?php echo $_GET['category']; ?>">
+  <input type="hidden" name="id" value="<?php echo $_GET['page']; ?>">
+  <input type="hidden" name="websiteLanguage" value="<?php echo $_SESSION['feinduraSession']['websiteLanguage']; ?>">
+  <input type="hidden" name="status" value="<?php echo $_GET['status']; ?>">
+  <input type="hidden" name="savedBlock" id="savedBlock" value="editor">
+</div>
+
 
 <!-- page information anchor is here -->
 <a id="pageInformation" class="anchorTarget"></a>
 
-
-<div class="block open pageHead">
+<div class="block open pageHeader">
 <?php
+
 
 // shows ID and different header color if its a CATEGORY
 $headerColorClass = ($_GET['category'] != 0)
   ? 'blue' //" comes in the h1
   : 'brown'; //" comes in the h1
 
+// get Title
+if($NEWPAGE && $_GET['status'] == 'addLanguage')
+  $pageTitle = sprintf($langFile['EDITOR_TITLE_ADDLANGUAGE'],$languageNames[$_SESSION['feinduraSession']['websiteLanguage']]);
+elseif($NEWPAGE)
+  $pageTitle = $langFile['EDITOR_TITLE_CREATEPAGE'];
+else
+  $pageTitle = strip_tags(GeneralFunctions::getLocalized($pageContent,'title',false,true));
+
 // adds the page and category IDs for the MooRTE saving of the title
-$titleIDs = (!$newPage) // data-feindura format: "pageID categoryID"
-  ? ' data-feindura="'.$_GET['page'].' '.$_GET['category'].'"'
+$titleData = (!$NEWPAGE) // data-feindura format: "pageID categoryID"
+  ? ' data-feindura="'.$_GET['page'].' '.$_GET['category'].' '.$_SESSION['feinduraSession']['websiteLanguage'].'"'
   : '';
 
-$titleIsEditable = (!$newPage)
+$titleIsEditable = (!$NEWPAGE)
   ? ' id="editablePageTitle"'
   : '';
 
 // -> show NEWPAGE ICON
-if($newPage) {
-  $newPageIcon = '<img src="library/images/icons/newPageIcon_middle.png" width="33" height="30" />';  
+if($NEWPAGE) {
+  $newPageIcon = '<img src="library/images/icons/newPageIcon_middle.png" class="blockH1Icon" width="33" height="30" alt="icon">';
 }
 
 // -> checks for startpage, and show STARTPAGE ICON
-if($adminConfig['setStartPage'] && $pageContent['id'] == $websiteConfig['startPage']) {
-  $startPageIcon = '<img src="library/images/icons/startPageIcon_middle.png" width="33" height="30" />';
-  $startPageTitle = ' toolTip" title="'.$langFile['sortablePageList_functions_startPage_set'].'::" style="line-height:left;'; //" comes in the h1
+if($pageContent['id'] == $websiteConfig['startPage']) {
+  $startPageIcon = '<img src="library/images/icons/startPageIcon_middle.png" class="blockH1Icon" width="33" height="30" alt="icon">';
+  $startPageTitle = ' toolTipTop" style="cursor:text;" title="'.$langFile['SORTABLEPAGELIST_functions_startPage_set'].'::" style="line-height:left;'; //" comes in the h1
 }
 
 // shows the text of the sorting of a CATEGORY
 if($categoryConfig[$_GET['category']]['sorting'] == 'byPageDate')
-  $sorting = '&nbsp;<img src="library/images/icons/sortByDate_small.png" class="blockH1Icon toolTip" title="'.$langFile['SORTABLEPAGELIST_TIP_SORTBYPAGEDATE'].'::" alt="icon" width="27" height="23" />';
+  $sorting = '&nbsp;<img src="library/images/icons/sortByDate_small.png" class="toolTipTop" title="'.$langFile['SORTABLEPAGELIST_TIP_SORTBYPAGEDATE'].'::" alt="icon" width="27" height="23">';
 elseif($categoryConfig[$_GET['category']]['sorting'] == 'alphabetical')
-  $sorting = '&nbsp;<img src="library/images/icons/sortAlphabetical_small.png" class="blockH1Icon toolTip" title="'.$langFile['SORTABLEPAGELIST_TIP_SORTALPHABETICAL'].'::" alt="icon" width="27" height="23" />';
+  $sorting = '&nbsp;<img src="library/images/icons/sortAlphabetical_small.png" class="toolTipTop" title="'.$langFile['SORTABLEPAGELIST_TIP_SORTALPHABETICAL'].'::" alt="icon" width="27" height="23">';
 else
   $sorting = '';
 
 // -> show the page PAGE HEADLINE
-echo '<h1 class="'.$headerColorClass.$startPageTitle.'">'.$newPageIcon.$startPageIcon.'<span class="'.$headerColorClasses.'"'.$titleIsEditable.$titleIDs.'>'.$pageTitle.'</span>'.$sorting.'<span style="display:none;" class="toolTip noMark notSavedSignPage'.$pageContent['id'].'" title="'.$langFile['EDITOR_pageNotSaved'].'::"> *</span></h1>';
+echo '<h1 class="'.$headerColorClass.$startPageTitle.'">'.$newPageIcon.$startPageIcon.'<span class="'.$headerColorClasses.'"'.$titleIsEditable.$titleData.'>'.$pageTitle.'</span>'.$sorting.'<span style="display:none;" class="toolTipRight noMark notSavedSignPage'.$pageContent['id'].'" title="'.$langFile['EDITOR_pageNotSaved'].'::"> *</span></h1>';
+
+// shows the PUBLIC OR UNPUBLIC in headline
+if(!$NEWPAGE) {
+  echo '<div style="z-index: 2;position:absolute;top: 10px; right:15px;">';
+  if($pageContent['public'])
+    echo ' <a href="?category='.$pageContent['category'].'&amp;page='.$pageContent['id'].'&amp;status=changePageStatus&amp;public=1&amp;reload='.rand(0,999).'#pageInformation" class="toolTipTop noMark image" title="'.$langFile['STATUS_PAGE_PUBLIC'].'::'.$langFile['SORTABLEPAGELIST_TIP_CHANGESTATUS'].'"><img src="library/images/icons/page_public.png" '.$publicSignStyle.' alt="icon public" width="27" height="27"></a>';
+  else
+    echo ' <a href="?category='.$pageContent['category'].'&amp;page='.$pageContent['id'].'&amp;status=changePageStatus&amp;reload='.rand(0,999).'#pageInformation" class="toolTipTop noMark image" title="'.$langFile['STATUS_PAGE_NONPUBLIC'].'::'.$langFile['SORTABLEPAGELIST_TIP_CHANGESTATUS'].'"><img src="library/images/icons/page_nonpublic.png"'.$publicSignStyle.' alt="icon nonpublic" width="27" height="27"></a>';
+  echo '</div>';
+}
 
 ?>
-  <div class="content">   
+  <div class="content form">
     <?php
-    
+
     // -> show LAST SAVE DATE TIME
-    $lastSaveDate =  StatisticFunctions::formatDate(StatisticFunctions::dateDayBeforeAfter($pageContent['lastSaveDate'],$langFile));
-    $lastSaveTime =  StatisticFunctions::formatTime($pageContent['lastSaveDate']);
-    
-    $editedByUser = (!empty($pageContent['lastSaveAuthor']))
-      ? '</b> '.$langFile['EDITOR_pageinfo_lastsaveauthor'].' <b>'.$pageContent['lastSaveAuthor']
+    $lastSaveDate =  GeneralFunctions::dateDayBeforeAfter($pageContent['lastSaveDate'],$langFile);
+    $lastSaveTime =  formatTime($pageContent['lastSaveDate']);
+
+    $editedByUser = ($pageContent['lastSaveAuthor'])
+      ? '</b> '.$langFile['EDITOR_pageinfo_lastsaveauthor'].' <b>'.$userConfig[$pageContent['lastSaveAuthor']]['username']
       : '';
-    
-    echo ($newPage)
+
+    echo ($NEWPAGE)
       ? ''
-      : '<div style="font-size:11px; text-align:right;">'.$langFile['EDITOR_pageinfo_lastsavedate'].': <b>'.$lastSaveDate.' '.$lastSaveTime.$editedByUser.'</b></div>';
-      
-    // -> show THUMBNAIL if the page has one
-    if(!$newPage && !empty($pageContent['thumbnail'])) {
-      
-      $thumbnailWidth = @getimagesize(DOCUMENTROOT.$adminConfig['uploadPath'].$adminConfig['pageThumbnail']['path'].$pageContent['thumbnail']);
-      $thumbnailWidth = $thumbnailWidth[0];
-      
-      
-      if($thumbnailWidth >= 200)        
-        $thumbnailWidth = ' width="200"';
-      //else
-        //$thumbnailWidth = ' width="'.$thumbnailWidth.'"';
-      
-      // generates a random number to put on the end of the image, to prevent caching
-      $randomImage = '?'.md5(uniqid(rand(),1));
-      
-      echo '<br /><div style="z-index:5; position:relative; margin-bottom: 10px; float:right; line-height:28px; text-align:center;">';
-      echo '<span class="thumbnailToolTip" title="::'.$adminConfig['uploadPath'].$adminConfig['pageThumbnail']['path'].$pageContent['thumbnail'].'">'.$langFile['THUMBNAIL_TEXT_NAME'].'</span><br />';
-      echo '<span class="deleteIcon">';
-      echo '<a href="?site=pageThumbnailDelete&amp;category='.$_GET['category'].'&amp;page='.$_GET['page'].'" onclick="openWindowBox(\'library/views/windowBox/pageThumbnailDelete.php?site='.$_GET['site'].'&amp;category='.$_GET['category'].'&amp;page='.$_GET['page'].'\',\''.$langFile['BUTTON_THUMBNAIL_DELETE'].'\',false);return false;" title="'.$langFile['BUTTON_TOOLTIP_THUMBNAIL_DELETE'].'::"" class="deleteIcon toolTip"></a>';
-      echo '<a href="?site=pageThumbnailUpload&amp;category='.$_GET['category'].'&amp;page='.$_GET['page'].'" onclick="openWindowBox(\'library/views/windowBox/pageThumbnailUpload.php?site='.$_GET['site'].'&amp;category='.$_GET['category'].'&amp;page='.$_GET['page'].'\',\''.$langFile['BUTTON_THUMBNAIL_UPLOAD'].'\',false);return false;" class="image">';
-      echo '<img src="'.$adminConfig['uploadPath'].$adminConfig['pageThumbnail']['path'].$pageContent['thumbnail'].$randomImage.'" class="thumbnailPreview thumbnailToolTip"'.$thumbnailWidth.' alt="thumbnail" title="::'.$adminConfig['uploadPath'].$adminConfig['pageThumbnail']['path'].$pageContent['thumbnail'].'" />';
-      echo '</a>';
-      echo '</span>';
-      echo '</div>';
-    
-    // -> show the thumbnail upload button if there is no thumbnail yet
-    } elseif(!$newPage &&
-             (($_GET['category'] == 0 && $adminConfig['pages']['thumbnails']) ||
-             $categoryConfig[$_GET['category']]['thumbnail'])) {  
-      
-        echo '<a href="?site=pageThumbnailUpload&amp;category='.$_GET['category'].'&amp;page='.$_GET['page'].'" onclick="openWindowBox(\'library/views/windowBox/pageThumbnailUpload.php?site='.$_GET['site'].'&amp;category='.$_GET['category'].'&amp;page='.$_GET['page'].'\',\''.$langFile['BUTTON_THUMBNAIL_UPLOAD'].'\',false);return false;" title="'.$langFile['BUTTON_TOOLTIP_THUMBNAIL_UPLOAD'].'::" class="pageThumbnailUpload toolTip">&nbsp;</a>';
+      : '<div style="font-size:11px; text-align:right;">'.$langFile['EDITOR_pageinfo_lastsavedate'].' <b>'.$lastSaveDate.' '.$lastSaveTime.$editedByUser.'</b></div>';
+
+
+    // PAGE ID
+    if(!$NEWPAGE && GeneralFunctions::isAdmin())
+      echo '<div class="row">
+              <div class="span3 formLeft">
+                <span class="info toolTipLeft" title="::'.$langFile['EDITOR_pageinfo_id_tip'].'"><strong>'.$langFile['EDITOR_pageinfo_id'].'</strong></span>
+              </div>
+              <div class="span5">
+                <span>'.$_GET['page'].'</span>
+              </div>
+            </div>';
+
+    // ->> IF NEWPAGE
+    if($NEWPAGE && $_GET['status'] != 'addLanguage') {
+
+      // -> show a CATEGORY SELECTION
+      echo '<div class="row">
+              <div class="span3 formLeft">
+                <label for="categorySelection"><span><strong>'.$langFile['EDITOR_pageinfo_category'].'</strong></span></label>
+              </div>
+              <div class="span5">
+                <select name="categorySelection" id="categorySelection">';
+
+                // ->> goes trough categories and list them
+                foreach($categoryConfig as $listCategory) {
+
+                  $selected = ($listCategory['id'] == $_GET['category']) ? ' selected="selected"' : $selected = '';
+                  $categoryId = (GeneralFunctions::isAdmin()) ? ' (ID '.$listCategory['id'].')' : '';
+
+                  // -> shows category selection if create pages is allowed
+                  if($listCategory['createDelete'] && GeneralFunctions::hasPermission('editableCategories',$listCategory['id']))
+                    echo '<option value="'.$listCategory['id'].'"'.$selected.'>'.GeneralFunctions::getLocalized($listCategory,'name').$categoryId.'</option>'."\n";
+                }
+
+      echo '    </select>
+              </div>
+            </div>';
+
+      // -> SHOW TEMPLATE SELECTION
+      echo '<div class="row">
+              <div class="span3 formLeft">
+                <label for="templateSelection"><strong>'.$langFile['EDITOR_TEXT_CHOOSETEMPLATE'].'</strong></label>
+              </div>
+              <div class="span5">
+                <select name="templateSelection" id="templateSelection">
+                  <option>-</option>'."\n";
+
+                // -> list all pages as template options
+                foreach($pagesMetaData as $pageMetaData) {
+                  $selected = ($pageMetaData['id'] == $_GET['template']) ? ' selected="selected"' : $selected = '';
+                  $categoryText = ($pageMetaData['category'] != 0) ? GeneralFunctions::getLocalized($categoryConfig[$pageMetaData['category']],'name').' » ' : '';
+                  echo '<option value="'.$pageMetaData['id'].'"'.$selected.'>'.$categoryText.GeneralFunctions::getLocalized($pageMetaData,'title').'</option>'."\n";
+                }
+
+      echo '    </select>
+              </div>
+            </div>';
+
+    // not a new page
+    } else {
+
+      if($_GET['category'] == 0) {// show only if categories exist
+        $categoryName = $langFile['EDITOR_pageinfo_category_noCategory'];
+        if(GeneralFunctions::isAdmin())
+          $categoryName .= ' <span style="color:#A6A6A6;">(ID 0)</span>';
+      } else {
+        $categoryName = GeneralFunctions::getLocalized($categoryConfig[$_GET['category']],'name');
+        if(GeneralFunctions::isAdmin())
+          $categoryName .= ' <span style="color:#A6A6A6;">(ID '.$_GET['category'].')</span>';
+      }
+
+      echo '<div class="row">
+              <div class="span3 formLeft">
+                <span><strong>'.$langFile['EDITOR_pageinfo_category'].'</strong></span>
+              </div>
+              <div class="span5">
+                <span>'.$categoryName.'</span>
+              </div>
+            </div>';
+    }
+
+    // SHOW PAGE LINK and LANGUAGES
+    if(!$NEWPAGE) {
+      // shows the category var in the link or not
+      if($_GET['category'] == 0)
+        $categoryInLink = '';
+      else
+        $categoryInLink = $adminConfig['varName']['category'].'='.$pageContent['category'].'&amp;';
+
+      // SHOWS the PAGE LANGUAGES
+      if(!isset($pageContent['localized'][0])) {
+        echo '<div class="row">
+                <div class="span3 formLeft">
+                  <span><strong>'.$langFile['SORTABLEPAGELIST_TIP_LOCALIZATION'].'</strong></span>
+                </div>
+                <div class="span5">';
+                  if(is_array($pageContent['localized'])) {
+                    foreach ($pageContent['localized'] as $langCode => $values) {
+                      echo '<a href="'.GeneralFunctions::addParameterToUrl(array('websiteLanguage','status'),array($langCode,'')).'" class="image" style="font-size:12px;"><img src="'.GeneralFunctions::getFlagSrc($langCode).'" class="flag" alt="flag icon"> '.$languageNames[$langCode].'</a>';
+                      if($_SESSION['feinduraSession']['websiteLanguage'] == $langCode) echo '<img src="library/images/icons/edited_small.png" style="position:absolute; margin-top:1px;" alt="icon">';
+                      echo '<br>';
+                    }
+                  }
+                  // list not yet existing languages of the page
+                  if($missingLanguages) {
+                    foreach ($missingLanguages as $langCode) {
+                        echo '<a href="'.GeneralFunctions::addParameterToUrl(array('websiteLanguage','status'),array($langCode,'addLanguage')).'" class="image gray" style="font-size:12px;"><img src="'.GeneralFunctions::getFlagSrc($langCode).'" class="flag" alt="flag icon"> <s>'.$languageNames[$langCode].'</s></a>';
+                        if($_SESSION['feinduraSession']['websiteLanguage'] == $langCode) echo '<img src="library/images/icons/edited_small.png" style="position:absolute; margin-top:1px;" alt="icon">';
+                        echo '<br>';
+                    }
+                  }
+        echo '  </div>
+              </div>';
+      }
+
+      // SHOWS the PAGE LINK
+      echo '<div class="row">
+              <div class="span3 formLeft">
+                <span><strong>'.$langFile['EDITOR_pageinfo_linktothispage'].'</strong></span>
+              </div>
+              <div class="span5">';
+
+        echo '    <span style="font-size:12px; word-wrap: break-word;"><a href="'.GeneralFunctions::createHref($pageContent,false,false,true).'" id="pageLink">'.GeneralFunctions::createHref($pageContent,false,false,true).'</a></span>';
+
+      if($adminConfig['prettyURL'])
+        echo ' <a href="?site=editLink&amp;category='.$pageContent['category'].'&amp;page='.$pageContent['id'].'" class="btn btn-mini" style="margin-left: 8px;margin-top: -3px;" onclick="openWindowBox(\'library/views/windowBox/editLink.php?category='.$pageContent['category'].'&amp;page='.$pageContent['id'].'\',\''.$langFile['EDITOR_EDITLINK'].'\');return false;">'.$langFile['BUTTON_EDIT'].'</a>';
+
+      echo '  </div>
+            </div>';
+
     }
     ?>
-    
-    <table>     
-      <colgroup>
-      <col class="left" />
-      </colgroup>
-  
-      <tr><td class="leftTop"></td><td></td></tr>      
-      <?php
-      
-      if(!$newPage)
-        echo '<tr>
-              <td class="left">      
-              <span class="info toolTip" title="'.$langFile['EDITOR_pageinfo_id'].'::'.$langFile['EDITOR_pageinfo_id_tip'].'"><strong>'.$langFile['EDITOR_pageinfo_id'].'</strong></span>
-              </td><td class="right">
-              <span class="info">'.$_GET['page'].'</span>
-              </td>
-              </tr>';
-      
-      if($_GET['category'] == 0) // show only if categories exist
-        $categoryName = '<span style="color:#A6A6A6;">'.$langFile['EDITOR_pageinfo_category_noCategory'].'</span>';
-      else
-        $categoryName = '<span style="color:#A6A6A6;">'.$categoryConfig[$_GET['category']]['name'].' (ID </span>'.$_GET['category'].'<span style="color:#A6A6A6;">)</span>';
-      
-    
-      // ->> if newPage
-      if($newPage) {
-      
-        // -> show a CATEGORY SELECTION
-        echo '<tr>
-              <td class="left">
-              <span class="info"><strong>'.$langFile['EDITOR_pageinfo_category'].'</strong></span>
-              </td><td class="right">
-              <select name="categoryId" id="categorySelection">';
-              
-              // -> shows non-category selection if create pages is allowed
-              if($adminConfig['pages']['createDelete'])
-                echo '<option value="0">'.$langFile['EDITOR_pageinfo_category_noCategory'].'</option>';
-              
-              // ->> goes trough categories and list them
-              foreach($categoryConfig as $listCategory) {
-                $selected = ($listCategory['id'] == $_GET['category']) ? ' selected="selected"' : $selected = '';
-                                
-                // -> shows category selection if create pages is allowed
-                if($listCategory['createDelete'])
-                  echo '<option value="'.$listCategory['id'].'"'.$selected.'>'.$listCategory['name'].' (ID '.$listCategory['id'].')</option>'."\n";
-              }
-              
-        echo '</select>
-              </td>
-              </tr>';
-        
-        // -> SHOW TEMPLATE SELECTION
-        echo '<tr>
-              <td class="left">
-              <span class="info"><strong>'.$langFile['EDITOR_TEXT_CHOOSETEMPLATE'].'</strong></span>
-              </td><td class="right">
-              <select id="templateSelection">
-              <option>-</option>'."\n";
-              
-              // -> loads all pages
-              $allPages = GeneralFunctions::loadPages(true);
-              // -> goes trough categories and list them
-              foreach($allPages as $curPage) {
-                $selected = ($curPage['id'] == $_GET['template']) ? ' selected="selected"' : $selected = '';
-                $categoryText = ($curPage['category'] != 0) ? $categoryConfig[$curPage['category']]['name'].' » ' : '';
-                echo '<option value="'.$curPage['id'].'"'.$selected.'>'.$categoryText.$curPage['title'].'</option>'."\n";
-              }
-              
-        echo '</select>
-              </td>
-              </tr>';
-        
-      // not a new page        
-      } else {  
-        echo '<tr>
-              <td class="left">
-              <span class="info"><strong>'.$langFile['EDITOR_pageinfo_category'].'</strong></span>
-              </td><td class="right">
-              <span class="info">'.$categoryName.'</span>
-              </td>
-              </tr>';
-      }
-      
-      if(!$newPage) {
-        // shows the category var in the link or not
-        if($_GET['category'] == 0)
-          $categoryInLink = '';
-        else
-          $categoryInLink = $adminConfig['varName']['category'].'='.$pageContent['category'].'&amp;';
-        
-        // shows the page link
-        echo '<tr>
-              <td class="left">
-              <span class="info"><strong>'.$langFile['EDITOR_pageinfo_linktothispage'].'</strong></span>
-              </td><td class="right">
-              <span class="info" style="font-size:11px;"><a href="'.GeneralFunctions::createHref($pageContent,false,true).'" class="extern">'.GeneralFunctions::createHref($pageContent,false,true).'</a></span>
-              </td>
-              </tr>';
-      }
-      ?>        
-      <tr><td class="leftBottom"></td><td></td></tr>
-    </table>    
-    
+    <div class="spacer"></div>
   </div>
-  <div class="bottom" style="height:0px; clear:all;"></div>
 </div>
 
-<!-- page settings anchor is here -->
-<a id="pageSettings" class="anchorTarget"></a>
 <?php
 
-if(!$newPage) {
+/**
+ * Include the editor
+ */
+if(!$NEWPAGE) {
+
+  // show the PREVIOUS STATE of the PAGE button
+  if($previousStatePageContent) {
+    $showPreviousStateBlock = ($SAVEDFORM) ? ' style="margin-top:-55px;"':'';
+    echo '<div class="restorePageButtonBox"'.$showPreviousStateBlock.'><div><a href="index.php?category='.$pageContent['category'].'&amp;page='.$pageContent['id'].'&amp;status=restorePageToLastState&amp;reload='.rand(0,999).'#editorAnchor" class="btn btn-inverse"><i class="icons restorePage"></i>'.sprintf($langFile['EDITOR_BUTTON_RESTORELASTSTATE'],GeneralFunctions::dateDayBeforeAfter($previousStatePageContent['lastSaveDate']).' '.formatTime($previousStatePageContent['lastSaveDate'])).'</a></div></div>';
+  }
+
+  // INCLUDE the EDITOR
+  include_once(dirname(__FILE__).'/../includes/editor.include.php');
+}
+
+if($NEWPAGE) {
 ?>
-<!-- ***** PAGE STATISTICS -->
-<?php
-// dont shows the block below if pageSettings is saved
-//$hidden = ($savedForm) ? ' hidden' : '';
-$hidden = ' hidden';
-?>
-<div class="block<?php echo $hidden; ?>">
-  <h1><a href="#"><img src="library/images/icons/statisticIcon_small.png" alt="icon" width="30" height="27" /><?php echo $langFile['EDITOR_pagestatistics_h1']; ?></a></h1>
-  <div class="content">
-  <?php
-  $pageStatistics = GeneralFunctions::readPageStatistics($pageContent['id']);
-  // -> statistic vars
-  // --------------
-  $firstVisitDate = StatisticFunctions::formatDate($pageStatistics['firstVisit']);
-  $firstVisitTime = StatisticFunctions::formatTime($pageStatistics['firstVisit']);
-  $lastVisitDate = StatisticFunctions::formatDate($pageStatistics['lastVisit']);
-  $lastVisitTime = StatisticFunctions::formatTime($pageStatistics['lastVisit']);
-  
-  $visitTimes_max = unserialize($pageStatistics['visitTimeMax']);
-  $visitTimes_min = unserialize($pageStatistics['visitTimeMin']);
-  ?>  
-  <table>   
-    
-    <colgroup>
-    <col class="left" />
-    </colgroup>
-    
-    <tr><td class="leftTop"></td><td></td></tr>
-    
-    <?php
-    
-    if($pageStatistics['firstVisit']) {
-    ?>
-    <tr>
-      <td class="left">
-        <?php echo $langFile['STATISTICS_TEXT_VISITORCOUNT']; ?>
-      </td><td class="right" style="font-size:15px;">
-        <?php
-        // -> VISIT COUNT
-        echo '<span class="brown" style="font-weight:bold;font-size:20px;">'.StatisticFunctions::formatHighNumber($pageStatistics['visitorCount']).'</span>';
-        ?>
-      </td>      
-    </tr>
-    <tr>
-      <td class="left">
-        <?php echo $langFile['STATISTICS_TEXT_FIRSTVISIT']; ?>
-      </td><td class="right" style="font-size:15px;">
-        <?php
-        // -> FIRST VISIT
-        echo '<span class="info brown toolTip" title="'.$firstVisitTime.'::">'.$firstVisitDate.'</span> ';
-        ?>
-      </td>
-    </tr>
-    
-    <tr>
-      <td class="left">
-        <?php echo $langFile['STATISTICS_TEXT_LASTVISIT']; ?>
-      </td><td class="right" style="font-size:15px;">
-        <?php
-        // -> LAST VISIT
-        echo '<span class="info blue toolTip" title="'.$lastVisitTime.'::">'.$lastVisitDate.'</span> ';
-        ?>
-      </td>
-    </tr>
-    
-    <tr><td class="spacer"></td><td></td></tr>
-    
-    <tr>
-      <td class="left">
-        <?php echo $langFile['STATISTICS_TEXT_VISITTIME_MAX']; ?>
-      </td><td class="right">
-        <?php
-        // -> VISIT TIME MAX
-        $showTimeHead = true;
-        if(is_array($visitTimes_max)) {
-          foreach($visitTimes_max as $visitTime_max) {
-            if($visitTime_max_formated = StatisticFunctions::showVisitTime($visitTime_max,$langFile)) {
-              if($showTimeHead)
-                echo '<span class="blue" id="visitTimeMax">'.$visitTime_max_formated.'</span><br />
-                <div id="visitTimeMaxContainer">';
-              else            
-                echo '<span class="blue">'.$visitTime_max_formated.'</span><br />';
-              
-              $showTimeHead = false;            
-            }
-          }
-        }
-        echo '</div>';    
-        ?>
-      </td>
-    </tr>
-    <tr>
-      <td class="left">
-        <?php echo $langFile['STATISTICS_TEXT_VISITTIME_MIN']; ?>
-      </td><td class="right">
-        <?php
-        // -> VISIT TIME MIN
-        $showTimeHead = true;
-        if(is_array($visitTimes_max)) {
-          $visitTimes_min = array_reverse($visitTimes_min);
-          foreach($visitTimes_min as $visitTime_min) {          
-            if($visitTime_min_formated = StatisticFunctions::showVisitTime($visitTime_min,$langFile)) {
-              if($showTimeHead)
-                echo '<span class="blue" id="visitTimeMin">'.$visitTime_min_formated.'</span><br />
-                <div id="visitTimeMinContainer">';
-              else            
-                echo '<span class="blue">'.$visitTime_min_formated.'</span><br />';
-            
-              $showTimeHead = false;
-            }          
-          }
-        }
-        echo '</div>';
-        ?>
-      </td>
-    </tr>
-    <?php
-    // -> show NO VISIT
-    } else {
-      echo '<tr>
-              <td class="left">
-              </td><td class="right" style="font-size:15px;">
-                '.$langFile['STATISTICS_TEXT_NOVISIT'].'
-              </td>
-            </tr>';
-    }    
-    ?>
-    
-    <tr><td class="spacer"></td><td></td></tr>
-    
-    <tr>
-      <td class="left">
-        <span><?php echo $langFile['STATISTICS_TEXT_SEARCHWORD_DESCRIPTION']; ?></span>
-      </td><td class="right">
-      <div style="width:95%;max-height:160px;border:0px solid #cccccc;padding:0px 10px;">
+  <!-- ***** PAGE SETTINGS on NEW PAGE -->
+  <div class="block<?php echo $hidden; ?>">
+    <div class="content form">
       <?php
-      
-      // -> show TAG CLOUD
-      echo '<div class="tagCloud">';
-      echo createTagCloud($pageStatistics['searchWords']);
-      echo '</div>';
 
+          include(dirname(__FILE__).'/../includes/pageMetaData.include.php');
       ?>
-      </div>
-      </td>
-    </tr>
-    
-    <tr><td class="leftBottom"></td><td></td></tr>
-    
-  </table>
+      <!-- this is just a placeholder anchor, so when submitting the form gets the editAnchor hashTag -->
+      <a id="editorAnchor" class="anchorTarget"></a>
+      <input type="submit" value="" class="button submit center" title="<?php echo $langFile['FORM_BUTTON_SUBMIT']; ?>">
+    </div>
   </div>
-  <div class="bottom"></div>
-</div>
 <?php
 }
-?>
-
-<!-- ***** PAGE SETTINGS -->
-<?php
-// shows the block below if it is the ones which is saved before
-$hidden = ($newPage || $savedForm == 'pageSettings') ? '' : ' hidden';
-?>
-<div class="block<?php echo $hidden; ?>">
-  <h1><a href="#"><?php echo $langFile['EDITOR_pageSettings_h1']; ?></a></h1>
-  <div class="content">
-    <table>
-     
-      <colgroup>
-      <col class="left" />
-      </colgroup>
-  
-      <tr><td class="leftTop"></td><td></td></tr>
-      
-      <!-- ***** PAGE TITLE -->
-      <?php
-        $autofocus = ($newPage)
-          ? ' autofocus="autofocus"'
-          : '';
-      ?>
-      <tr><td class="left">
-      <label for="edit_title"><span class="toolTip" title="<?php echo $langFile['EDITOR_pageSettings_title'].'::'.$langFile['EDITOR_pageSettings_title_tip'] ?>">
-      <?php echo $langFile['EDITOR_pageSettings_title'] ?></span></label>
-      </td><td class="right">
-        <input id="edit_title" name="title" style="width:492px;" value="<?= str_replace('"','&quot;',$pageContent['title']); ?>"<?= $autofocus; ?> />        
-      </td></tr>
-      
-      <!-- ***** PAGE DESCRIPTION -->      
-      <tr><td class="left">
-      <label for="edit_description"><span class="toolTip" title="<?php echo $langFile['EDITOR_pageSettings_field1'].'::'.$langFile['EDITOR_pageSettings_field1_tip']; ?>">
-      <?php echo $langFile['EDITOR_pageSettings_field1']; ?></span></label>
-      </td><td class="right">
-      <textarea id="edit_description" name="description" cols="50" rows="2" style="white-space:normal;width:480px;" class="inputToolTip autogrow" title="<?php echo $langFile['EDITOR_pageSettings_field1_inputTip']; ?>"><?php echo $pageContent['description']; ?></textarea>
-      </td></tr>
-      <?php
-      
-      // -> CHECK if page date or tags are activated, show the spacer
-      if($categoryConfig[$_GET['category']]['showPageDate'] ||
-         $categoryConfig[$_GET['category']]['showTags'] ||
-         $adminConfig['pages']['showPageDate'] ||
-         $adminConfig['pages']['showTags']) {
-        echo '<tr><td class="spacer"></td><td></td></tr>';
-      }
-            
-      // ->> CHECK if activated
-      if(($_GET['category'] != 0 && $categoryConfig[$_GET['category']]['showPageDate']) ||
-         ($_GET['category'] == 0 && $adminConfig['pages']['showPageDate'])) { ?>
-      
-      <!-- ***** SORT DATE -->      
-      <?php
-        
-      // check if already a (wrong) pageDate exists
-      $pageDate = (isset($pageDate))
-        ? $pageDate
-        : $pageContent['pageDate']['date'];  
-      
-      // add the DATE of TODAY, if its a NEW PAGE
-      $pageDate = ($newPage)
-        ? time()
-        : $pageDate;
-      
-      ?>      
-      <tr><td class="left">
-      <label for="edit_pagedate">
-      <?php
-      
-      // get date format
-      if($adminConfig['dateFormat'] == 'eu')
-        $dateFormat = $langFile['DATE_EU'];
-      else
-        $dateFormat = $langFile['DATE_INT'];
-      
-      // CHECKs the DATE FORMAT
-      if(!empty($pageDate) && StatisticFunctions::validateDateFormat($pageDate) === false)
-        echo '<span class="toolTip red" title="'.$langFile['EDITOR_pageSettings_pagedate_error'].'::'.$langFile['EDITOR_pageSettings_pagedate_error_tip'].'[br /][b]'.$dateFormat.'[/b]"><b>'.$langFile['EDITOR_pageSettings_pagedate_error'].'</b></span>'; 
-      else
-        echo '<span class="toolTip" title="'.$langFile['EDITOR_pageSettings_field3'].'::'.$langFile['EDITOR_pageSettings_field3_tip'].'">'.$langFile['EDITOR_pageSettings_field3'].'</span>';
-      ?>
-      </label>
-      
-      </td><td class="right">
-        <input name="pageDate[before]" value="<?php echo $pageContent['pageDate']['before']; ?>" class="inputToolTip" title="<?php echo $langFile['EDITOR_pageSettings_pagedate_before_inputTip']; ?>" style="width:130px;" />
-        
-        <?php
-        
-        // -> creates DAY selection
-        $pageDateTags['day'] = '<select name="pageDate[day]" class="toolTip" title="'.$langFile['EDITOR_pageSettings_pagedate_day_inputTip'].'">'."\n";
-        for($i = 1; $i <= 31; $i++) {
-          // adds following zero
-          if(strlen($i) == 1)
-            $countDays = '0'.$i;
-          else $countDays = $i;
-          // selects the selected month
-          if(substr($pageDate,-2) == $countDays ||
-             (preg_match('/^[0-9]{1,}$/',$pageDate) && date('d',$pageDate) == $countDays))
-            $selected = ' selected="selected"';
-          else $selected = null;
-          $pageDateTags['day'] .= '<option value="'.$countDays.'"'.$selected.'>'.$countDays.'</option>'."\n";
-        }
-        $pageDateTags['day'] .= '</select>'."\n";
-
-        // -> creates MONTH selection
-        $pageDateTags['month'] = '<select name="pageDate[month]" class="toolTip" title="'.$langFile['EDITOR_pageSettings_pagedate_month_inputTip'].'">'."\n";
-        for($i = 1; $i <= 12; $i++) {
-          // adds following zero
-          if(strlen($i) == 1)
-            $countMonths = '0'.$i;            
-          else $countMonths = $i;
-          // selects the selected month
-          if(substr($pageDate,-5,2) == $countMonths ||
-             (preg_match('/^[0-9]{1,}$/',$pageDate) && date('m',$pageDate) == $countMonths))
-            $selected = ' selected="selected"';
-          else $selected = null;
-          $pageDateTags['month'] .= '<option value="'.$countMonths.'"'.$selected.'>'.$countMonths.'</option>'."\n";
-        }
-        $pageDateTags['month'] .= '</select>'."\n";
-        
-        // -> creates YEAR selection
-        $year = substr($pageDate,0,4);
-        if(strlen($pageDate) > 4 && preg_match('/^[0-9]{1,}$/',$pageDate))
-          $year = date('Y',$pageDate);
-        elseif(preg_match('/^[0-9]{4}$/',$year))
-          $year = $year;
-        else
-          $year = null;
-          
-        $pageDateTags['year'] = '<input class="short toolTip" name="pageDate[year]" title="'.$langFile['EDITOR_pageSettings_pagedate_year_inputTip'].'" value="'.$year.'" maxlength="4" />'."\n";
-        
-        // -> WRITES the SORT DATE TAGS
-        if($adminConfig['dateFormat'] == 'eu') {
-          echo $pageDateTags['day'].' . '.$pageDateTags['month'].' . '.$pageDateTags['year'];
-        } elseif($adminConfig['dateFormat'] == 'int') {
-          echo $pageDateTags['year'].' - '.$pageDateTags['month'].' - '.$pageDateTags['day'];
-        }
-        
-        ?>
-        
-        <input name="pageDate[after]" value="<?php echo $pageContent['pageDate']['after']; ?>" class="toolTip" title="<?php echo $langFile['EDITOR_pageSettings_pagedate_after_inputTip']; ?>" style="width:122px;" />
-      </td></tr>
-      <?php }
-      
-      // ->> CHECK if activated
-      if($categoryConfig[$_GET['category']]['showTags'] || $adminConfig['pages']['showTags']) {
-      ?>      
-      <!-- ***** TAGS -->
-      
-      <tr><td class="left">
-      <label for="edit_tags"><span class="toolTip" title="<?php echo $langFile['EDITOR_pageSettings_field2'].'::'.$langFile['EDITOR_pageSettings_field2_tip'] ?>">
-      <?php echo $langFile['EDITOR_pageSettings_field2'] ?></span></label>
-      </td><td class="right">
-        <input id="edit_tags" name="tags" class="inputToolTip" style="width:492px;" value="<?php echo $pageContent['tags']; ?>" title="<?php echo $langFile['EDITOR_pageSettings_field2'].'::'.$langFile['EDITOR_pageSettings_field2_tip_inputTip']; ?>" />        
-      </td></tr>
-      <?php } ?>
-      
-      <tr><td class="leftBottom"></td><td></td></tr>      
-      
-      <tr><td class="spacer checkboxes"></td><td></td></tr>
-      
-      <!-- ***** PUBLIC/UNPUBLIC -->
-      
-      <tr><td class="left checkboxes">    
-        <input type="checkbox" id="edit_public" name="public" value="true" <?php if($pageContent['public']) echo 'checked'; ?> />
-      </td><td class="right checkboxes">
-        <label for="edit_public">
-        <?php          
-          $publicSignStyle = ' style="position:relative; top:-3px; float:left;"';
-        
-        // shows the public or unpublic picture
-        if($pageContent['public'])
-          echo '<img src="library/images/icons/page_public.png" class="toolTip" title="'.$langFile['STATUS_PAGE_PUBLIC'].'"'.$publicSignStyle.' alt="public" width="27" height="27" />';
-        else
-          echo '<img src="library/images/icons/page_nonpublic.png" class="toolTip" title="'.$langFile['STATUS_PAGE_NONPUBLIC'].'"'.$publicSignStyle.' alt="nonpublic" width="27" height="27" />';
-
-        ?>
-        &nbsp;<span class="toolTip" title="<?php echo $langFile['EDITOR_pageSettings_field4'].'::'.$langFile['EDITOR_pageSettings_field4_tip'] ?>">
-        <?php echo $langFile['EDITOR_pageSettings_field4']; ?></span></label>        
-      </td></tr>
-      
-      <tr><td class="spacer checkboxes"></td><td></td></tr>      
-    </table>
-    <?php $setAnchor = ($newPage) ? 'pageInformation' : 'pageSettings';  ?>
-    <input type="submit" value="" class="button submit center" title="<?php echo $langFile['FORM_BUTTON_SUBMIT']; ?>" onclick="$('savedBlock').value = 'pageSettings'; submitAnchor('editorForm','<?= $setAnchor; ?>');" />
-  </div>
-  <div class="bottom"></div>
-</div>
-<?php
 
 /**
  * Include the editor when newpage
  */
-if($newPage)
+if($NEWPAGE) {
   include_once(dirname(__FILE__).'/../includes/editor.include.php');
-
-// get the activated plugins
-$activatedPlugins = ($_GET['category'] === 0)
-  ? unserialize($adminConfig['pages']['plugins'])
-  : unserialize($categoryConfig[$_GET['category']]['plugins']);
-
-if(is_array($activatedPlugins) && count($activatedPlugins) >= 1) { // && $pluginsActive
-?>
-<!-- ***** PLUGIN SETTINGS -->
-<a id="pluginSettings" class="anchorTarget"></a>
-<?php
-// shows the block below if it is the ones which is saved before
-$hidden = ($newPage || $savedForm == 'pluginSettings') ? '' : ' hidden';
-$blockContentEdited = (isset($pageContent['plugins']))
-  ? '&nbsp;<img src="library/images/icons/edited_small.png" class="blockH1Icon toolTip" title="'.$langFile['EDITOR_pluginSettings_h1'].' '.$langFile['EDITOR_block_edited'].'::" alt="icon" width="27" height="23" />'
-  : '';
-?>
-<div class="block<?= $hidden; ?>">
-  <h1><a href="#"><?php echo $langFile['EDITOR_pluginSettings_h1'].$blockContentEdited; ?></a></h1>
-  <div class="content">
-      <?php
-      
-      // ->> LOAD PLUGINS      
-      $plugins = GeneralFunctions::readFolder(dirname(__FILE__).'/../../plugins/');
-      foreach($plugins['folders'] as $pluginFolder) {
-      
-        // vars
-      	$pluginCountryCode = (file_exists(DOCUMENTROOT.$pluginFolder.'/languages/'.$_SESSION['feinduraSession']['language'].'.php'))
-      	  ? $_SESSION['feinduraSession']['language']
-      	  : 'en';
-        unset($pluginConfig,$pluginLangFile);
-        $pluginFolderName = basename($pluginFolder);       
-        $pluginConfig = @include(DOCUMENTROOT.$pluginFolder.'/config.php');
-        $pluginLangFile = @include(DOCUMENTROOT.$pluginFolder.'/languages/'.$pluginCountryCode.'.php');
-        $pluginName = (isset($pluginLangFile['feinduraPlugin_title'])) ? $pluginLangFile['feinduraPlugin_title'] : $pluginFolderName;
-        
-        // LIST PLUGINS
-        if(in_array($pluginFolderName,$activatedPlugins)) {
-          ?>          
-          <table>          
-          <tr><td class="left checkboxes">
-          <input type="checkbox" class="inBlockSliderLink" id="feinduraPlugin_<?= $pluginFolderName; ?>" name="plugins[<?= $pluginFolderName; ?>][active]" value="true" <?= ($pageContent['plugins'][$pluginFolderName]['active']) ? 'checked' : ''; ?> />
-          </td><td class="right checkboxes">
-            <label for="feinduraPlugin_<?= $pluginFolderName; ?>"><b><?= $pluginName; ?></b></label>
-            <p><?= $pluginLangFile['feinduraPlugin_description']; ?></p>
-          </td></tr>
-          </table>                   
-          <?php
-          
-          $hidden = ($pageContent['plugins'][$pluginFolderName]['active']) ? '' : ' hidden';
-          ?>
-          <table class="inBlockSlider<?= $hidden; ?>">
-          <colgroup>
-          <col class="left" />
-          </colgroup>          
-          <?php          
-          // var
-          $checkboxes = true;
-          
-          // ->> LIST PLUGIN SETTINGS          
-          if(!empty($pluginConfig) && is_array($pluginConfig)) {
-            foreach($pluginConfig as $key => $value) {
-              
-              $value = (!isset($pageContent['plugins'][$pluginFolderName][$key]) && $pageContent['plugins'][$pluginFolderName][$key] !== false)
-                ? $value
-                : $pageContent['plugins'][$pluginFolderName][$key];
-              $inputLength = (is_numeric($value)) ? ' short' : '';
-              $keyName = (isset($pluginLangFile[$key])) ? $pluginLangFile[$key] : $key;
-              $keyTip = (isset($pluginLangFile[$key.'_tip'])) ? ' class="toolTip'.$inputLength.'" title="'.$pluginLangFile[$key.'_tip'].'::"' : '';
-              
-              
-              if(is_bool($value)) {
-                echo (!$checkboxes) ? '<tr><td class="leftBottom"></td><td></td></tr>' : '';
-                
-                $checked = ($value) ? 'checked' : '';
-                echo '<tr><td class="left checkboxes">
-                      <input type="hidden" name="plugins['.$pluginFolderName.']['.$key.']" value="false" />
-                      <input type="checkbox" id="feinduraPlugin_'.$pluginFolderName.'_config_'.$key.'" name="plugins['.$pluginFolderName.']['.$key.']" value="true"'.$keyTip.' '.$checked.' />
-                      </td><td class="right checkboxes">
-                        <label for="feinduraPlugin_'.$pluginFolderName.'_config_'.$key.'"'.$keyTip.'>'.$keyName.'</label>        
-                      </td>';
-                      
-                $checkboxes = true;
-                          
-              } else {
-                echo ($checkboxes) ? '<tr><td class="leftTop"></td><td></td></tr>' : '';
-
-                echo '<tr><td class="left">
-                      <label for="feinduraPlugin_'.$pluginFolderName.'_config_'.$key.'"'.$keyTip.'>'.$keyName.'</label>
-                      </td><td class="right">
-                        <input id="feinduraPlugin_'.$pluginFolderName.'_config_'.$key.'"'.$inputLength.' name="plugins['.$pluginFolderName.']['.$key.']" value="'.$value.'"'.$keyTip.' />        
-                      </td></tr>';
-                      
-                $checkboxes = false;              
-              }  
-            }
-          }          
-          echo (!$checkboxes) ? '<tr><td class="leftBottom"></td><td></td></tr>' : '';
-          echo '</tr></table>
-                <div class="verticalSeparator"></div>';                
-        }
-      }     
-      ?>
-    <p>&nbsp;</p>
-    <!--<input type="reset" value="" class="button cancel" title="<?php echo $langFile['FORM_BUTTON_CANCEL']; ?>" />-->
-    <input type="submit" value="" class="button submit center" title="<?php echo $langFile['FORM_BUTTON_SUBMIT']; ?>" onclick="$('savedBlock').value = 'pluginSettings'; submitAnchor('editorForm','pluginSettings');" />
-  </div>
-  <div class="bottom"></div>
-</div>
-<?php
+  echo '<div class="spacer2x"></div>';
 }
 
-if(isAdmin()) {
+if(GeneralFunctions::isAdmin()) {
 ?>
 <!-- ***** ADVANCED PAGE SETTINGS -->
-<a id="advancedPageSettingsAnchor" class="anchorTarget"></a>
+<a id="advancedPageSettings" class="anchorTarget"></a>
 <?php
 // shows the block below if it is the ones which is saved before
-$hidden = ($savedForm == 'advancedPageSettings') ? '' : ' hidden';
+$hidden = ($SAVEDFORM == 'advancedPageSettings') ? '' : ' hidden';
 $blockContentEdited = ((!empty($pageContent['styleFile']) && $pageContent['styleFile'] != 'a:0:{}') ||
                        (!empty($pageContent['styleId']) &&  $pageContent['styleId'] != 'a:0:{}') ||
                        (!empty($pageContent['styleClass']) && $pageContent['styleClass'] != 'a:0:{}'))
-  ? '&nbsp;<img src="library/images/icons/edited_small.png" class="blockH1Icon toolTip" title="'.$langFile['EDITOR_advancedpageSettings_h1'].' '.$langFile['EDITOR_block_edited'].'::" alt="icon" width="27" height="23" />'
+  ? '&nbsp;<img src="library/images/icons/edited_small.png" class="toolTipLeft" title="'.$langFile['EDITOR_advancedpageSettings_h1'].' '.$langFile['EDITOR_block_edited'].'::" alt="icon" style="width:27px;height:23px;">'
   : '';
 ?>
 <div class="block<?php echo $hidden; ?>">
   <h1><a href="#"><?php echo $langFile['EDITOR_advancedpageSettings_h1'].$blockContentEdited; ?></a></h1>
-  <div class="content">
-    <table>
-     
-      <colgroup>
-      <col class="left" />
-      </colgroup>
-  
-      <tr><td class="leftTop"></td><td></td></tr>
-      
-      <tr><td class="left">
-      <span class="toolTip" title="<?php echo $langFile['STYLESHEETS_TEXT_STYLEFILE'].'::'.$langFile['STYLESHEETS_TOOLTIP_STYLEFILE'].'[br /][br /][span class=hint]'.$langFile['EDITOR_advancedpageSettings_stylesheet_ifempty'].'[/span]'; ?>"><?php echo $langFile['STYLESHEETS_TEXT_STYLEFILE']; ?></span>
-      </td><td class="right">
-      <div id="pageStyleFilesInputs" class="inputToolTip" title="<?php echo $langFile['PATHS_TOOLTIP_ABSOLUTE'].'::[span class=hint]'.$langFile['EDITOR_advancedpageSettings_stylesheet_ifempty'].'[/span]'; ?>">
-      <span class="hint" style="float:right;width:190px;"><?php echo $langFile['STYLESHEETS_EXAMPLE_STYLEFILE']; ?></span>
-      <?php
-      
-      echo showStyleFileInputs(GeneralFunctions::getStylesByPriority($pageContent['styleFile'],'styleFile',$pageContent['category']),'styleFile');
+  <div class="content form">
 
-      ?>      
+    <div class="row">
+      <div class="span3 formLeft">
+        <span class="toolTipLeft" title="::<?php echo $langFile['STYLESHEETS_TOOLTIP_STYLEFILE'].'[br][br][span class=hint]'.$langFile['EDITOR_advancedpageSettings_stylesheet_ifempty'].'[/span]'; ?>"><?php echo $langFile['STYLESHEETS_TEXT_STYLEFILE']; ?></span>
       </div>
-      <a href="#" class="addStyleFilePath toolTip" title="<?php echo $langFile['STYLESHEETS_TOOLTIP_ADDSTYLEFILE']; ?>::"></a>
-      </td></tr>
-                  
-      <tr><td class="left">
-      <span class="toolTip" title="<?php echo $langFile['STYLESHEETS_TEXT_ID'].'::'.$langFile['STYLESHEETS_TOOLTIP_ID'].'[br /][br /][span class=hint]'.$langFile['EDITOR_advancedpageSettings_stylesheet_ifempty'].'[/span]'; ?>"><?php echo $langFile['STYLESHEETS_TEXT_ID']; ?></span>
-      </td><td class="right">
-      <input name="styleId" value="<?php echo GeneralFunctions::getStylesByPriority($pageContent['styleId'],'styleId',$pageContent['category']); ?>" class="inputToolTip" title="<?php echo $langFile['EDITOR_advancedpageSettings_stylesheet_ifempty']; ?>" />
-      </td></tr>
-            
-      <tr><td class="left">
-      <span class="toolTip" title="<?php echo $langFile['STYLESHEETS_TEXT_CLASS'].'::'.$langFile['STYLESHEETS_TOOLTIP_CLASS'].'[br /][br /][span class=hint]'.$langFile['EDITOR_advancedpageSettings_stylesheet_ifempty'].'[/span]'; ?>"><?php echo $langFile['STYLESHEETS_TEXT_CLASS']; ?></span>
-      </td><td class="right">
-      <input name="styleClass" value="<?php echo GeneralFunctions::getStylesByPriority($pageContent['styleClass'],'styleClass',$pageContent['category']); ?>" class="inputToolTip" title="<?php echo $langFile['EDITOR_advancedpageSettings_stylesheet_ifempty']; ?>" />
-      </td></tr>
+      <div class="span5">
+        <div id="pageStyleFilesInputs" class="toolTipTop" title="::<?php echo $langFile['EDITOR_advancedpageSettings_stylesheet_ifempty']; ?>">
+        <?php
 
-      <tr><td class="leftBottom"></td><td></td></tr>
-      
-    </table>
-    
-    <!--<input type="reset" value="" class="button cancel" title="<?php echo $langFile['FORM_BUTTON_CANCEL']; ?>" />-->
-    <input type="submit" value="" class="button submit center" title="<?php echo $langFile['FORM_BUTTON_SUBMIT']; ?>" onclick="$('savedBlock').value = 'advancedPageSettings'; submitAnchor('editorForm','advancedPageSettingsAnchor');" />
+          echo showStyleFileInputs(getStylesByPriority($pageContent['styleFile'],'styleFile',$pageContent['category']),'styleFile');
+
+        ?>
+        </div>
+        <a href="#" class="addStyleFilePath addButton toolTipLeft" style="margin-right: 10px;float:left;" title="<?php echo $langFile['STYLESHEETS_TOOLTIP_ADDSTYLEFILE']; ?>::"></a>
+        <span class="badge" style="position:relative; top: 3px;"><?php echo $langFile['STYLESHEETS_EXAMPLE_STYLEFILE']; ?></span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="span3 formLeft">
+        <span class="toolTipLeft" title="::<?php echo $langFile['STYLESHEETS_TOOLTIP_ID'].'[br][br][span class=hint]'.$langFile['EDITOR_advancedpageSettings_stylesheet_ifempty'].'[/span]'; ?>"><?php echo $langFile['STYLESHEETS_TEXT_ID']; ?></span>
+      </div>
+      <div class="span5">
+        <input type="text" name="styleId" value="<?php echo getStylesByPriority($pageContent['styleId'],'styleId',$pageContent['category']); ?>" class="toolTipRight" title="::<?php echo $langFile['EDITOR_advancedpageSettings_stylesheet_ifempty']; ?>">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="span3 formLeft">
+        <span class="toolTipLeft" title="::<?php echo $langFile['STYLESHEETS_TOOLTIP_CLASS'].'[br][br][span class=hint]'.$langFile['EDITOR_advancedpageSettings_stylesheet_ifempty'].'[/span]'; ?>"><?php echo $langFile['STYLESHEETS_TEXT_CLASS']; ?></span>
+      </div>
+      <div class="span5">
+        <input type="text" name="styleClass" value="<?php echo getStylesByPriority($pageContent['styleClass'],'styleClass',$pageContent['category']); ?>" class="toolTipRight" title="::<?php echo $langFile['EDITOR_advancedpageSettings_stylesheet_ifempty']; ?>">
+      </div>
+    </div>
+
+    <input type="submit" value="" class="button submit center" title="<?php echo $langFile['FORM_BUTTON_SUBMIT']; ?>">
   </div>
-  <div class="bottom"></div>
 </div>
-<?php } else
-  echo '<div style="height:20px;"></div>';
+<?php }
 ?>
 </form>
+
+<!-- PAGE SCRIPTS -->
+<script type="text/javascript">
+/* <![CDATA[ */
+
+  // setup the AUTOMATICALLY ADDING OF the ANCHORS
+  setupForm('editorForm');
+
+
+  // hide .restorePageButtonBox after a while
+  var restoreBoxTimeout = (function(){
+    $$('.restorePageButtonBox').tween('margin-top','-20px')
+  }).delay(5000);
+
+  $$('.restorePageButtonBox').addEvents({
+    'mouseenter': function(){
+      clearTimeout(restoreBoxTimeout);
+      this.tween('margin-top','-55px');
+    },
+    'mouseleave': function(){
+      clearTimeout(restoreBoxTimeout);
+      this.tween('margin-top','-20px');
+    }
+  });
+
+/* ]]> */
+</script>

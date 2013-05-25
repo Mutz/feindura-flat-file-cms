@@ -16,7 +16,7 @@
  */
 /**
  * ITALIAN (IT) language-file for the feindura CMS (FRONTEND)
- * 
+ *
  * need a RETURN $frontendLangFile; at the END
  */
 
@@ -25,16 +25,18 @@
 // -> GENERAL <-
 */
 
-$frontendLangFile['HEADER_TIP_GOTOBACKEND']          = 'Feindura::Clicca qui per entrare nel lato backend.';
-$frontendLangFile['PAGEFUNCTIONS_TIP_EDITINBACKEND'] = 'Modifica questa pagina nel lato backend';
+$frontendLangFile['HEADER_TIP_GOTOBACKEND']               = 'Feindura::Clicca qui per entrare nel lato backend.';
+$frontendLangFile['PAGEFUNCTIONS_TIP_EDITINBACKEND']      = 'Modifica questa pagina nel lato backend';
 
-$frontendLangFile['EDITPAGE_TIP_DISABLED']           = 'Non &#232; possibile modificare la pagina::Questa pagina contiene tag [i]<script>[/i] ed &#232; possibile mogificarla solo nel lato backend.';
-
+$frontendLangFile['EDITPAGE_TIP_DISABLED']                = 'Modifica in frontend non è possibile::Il contenuto è stato modificato dagli script.';
+$frontendLangFile['TOPBAR_TIP_FRONTENDEDITING']           = 'Selezionare un\'area modificabile per avviare la modifica.';
+$frontendLangFile['TOPBAR_TIP_DEACTIVATEFRONTENDEDITING'] = 'Disattivare la modifica del frontend';
 
 // FRONTEND ERROR TEXTS
 
 $frontendLangFile['PAGE_ERROR_NOPAGE']               = 'La pagina richiesta non esiste.';
 $frontendLangFile['PAGE_ERROR_PAGENOTPUBLIC']        = 'La pagina richiesta non &#232; attualmente disponibile.';
+$frontendLangFile['INFO_MAINTENACE']                 = 'Il sito web sarà presto disponibile.';
 
 
 // DATE TEXTS
@@ -53,5 +55,3 @@ $frontendLangFile['PAGE_TEXT_MORE']                  = 'altro';
 // RETURN ****************************************************************************************
 // -----------------------------------------------------------------------------------------------
 return $frontendLangFile;
-
-?>

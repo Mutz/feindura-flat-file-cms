@@ -25,67 +25,70 @@ require_once(dirname(__FILE__)."/../includes/secure.include.php");
 $sortOrder = explode('|',$_POST['sort_order']);
 
 // reverse the array when sortReverse == true
-if(($_POST['categoryNew'] == 0 && !$adminConfig['pages']['sortReverse']) ||
-   ($_POST['categoryNew'] != 0 && !$categoryConfig[$_POST['categoryNew']]['sortReverse']))
+if(!$categoryConfig[$_POST['categoryNew']]['sortReverse'])
   $sortOrder = array_reverse($sortOrder);
 
 // MOVE the file if it is sorted in an new category
 if($_POST['categoryOld'] != $_POST['categoryNew']) {
   if(!movePage($_POST['sortedPageId'],$_POST['categoryOld'],$_POST['categoryNew'])) {
-      echo '<span style="color: #960000;">'.sprintf($langFile['sortablePageList_error_move'],$adminConfig['realBasePath']).'</span>';
+      echo '<span style="color: #960000;">'.sprintf($langFile['SORTABLEPAGELIST_error_move'],$adminConfig['basePath']).'</span>';
       die();
   }
 }
 
-// set Name of the non category
-$categoryConfig[0]['name'] = $langFile['categories_nocategories_name'].' '.$langFile['categories_nocategories_hint'];
-
 // go trough the sort_order which has the id of the pages in the new order
 foreach($sortOrder as $sort) {
   static $count = 1;
-  
+
   if($sort != '') {
-    
+
     // ->> SORT the pages new
     if($pageContent = GeneralFunctions::readPage($sort,$_POST['categoryNew'])) {
-      
+
       // -> changes the properties of the page
       $pageContent['sortOrder'] = $count; // get a new sort order number
       $pageContent['category'] = $_POST['categoryNew']; // eventually get a new category id
-       
-      
+
+
       // ->> save the new sorting
-      if(GeneralFunctions::savePage($pageContent)) {
-        $status = $langFile['sortablePageList_save_finished'];
+      if(GeneralFunctions::savePage($pageContent,false,false)) {
+        $status = $langFile['SORTABLEPAGELIST_save_finished'];
         $count++;
-        
+
         // -> saves the task log
         if($_POST['sortedPageId'] == $pageContent['id'] && $categoryConfig[$_POST['categoryNew']]['sorting'] != 'byPageDate') {
           $logText = ($_POST['categoryOld'] != $_POST['categoryNew'])
             ? 3 : 4;
           // save log
-          StatisticFunctions::saveTaskLog($logText,'page='.$pageContent['id'].'|-|category='.$_POST['categoryNew'].'|-|moved'); // <- SAVE the task in a LOG FILE
+          saveActivityLog($logText,'page='.$pageContent['id'].'|-|category='.$_POST['categoryNew'].'|-|moved'); // <- SAVE the task in a LOG FILE
         }
       // -X ERROR savePage
       } else {
-        $status = sprintf($langFile['sortablePageList_error_save'],$adminConfig['realBasePath']);
-      }        
-      
+        $status = sprintf($langFile['SORTABLEPAGELIST_error_save'],$adminConfig['basePath']);
+      }
+
       /*
-      echo substr($pageContent['title'],0,4).',';
+      echo substr(GeneralFunctions::getLocalized($pageContent,'title'),0,4).',';
       echo $pageContent['id'].',';
       echo $pageContent['sortOrder'].'|';
       */
-      
-    // -X ERROR readPage 
+
+    // -X ERROR readPage
     } else
-      $status = sprintf($langFile['sortablePageList_error_read'],$adminConfig['realBasePath']);
-  }  
+      $status = sprintf($langFile['SORTABLEPAGELIST_error_read'],$adminConfig['basePath']);
+  }
 }
+
+// SAVE the PAGESMETADATAARRAY
+GeneralFunctions::savePagesMetaData();
+
 // -> CHECKs if the category folder is empty,
-// if yes: the "&nbsp;" is read by the sortPages.js and it puts, a "no pages" - notice
-if(!GeneralFunctions::loadPages($_POST['categoryOld'],false))
+// if its empty: the "<span></span>" is read by the content.js sort request and puts, a "no pages" - notice into the listPages
+if(!GeneralFunctions::getPagesMetaDataOfCategory($_POST['categoryOld']))
   echo '<span></span>';
-  
+
+// clean up the $pageContent array
+unset($pageContent);
+
 echo $status;
 ?>

@@ -16,7 +16,7 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *    
+ *
  *    modified by Fabian Vogelsteller:
  *    add:
  *    $base_url, $base_uri parameters to the constructor.
@@ -28,7 +28,7 @@ class Sitemap {
 
   public $showError = true;
   public $filePermissions = 0755;
-  
+
   private $base_url;
   private $base_uri;
   private $compress;
@@ -36,20 +36,20 @@ class Sitemap {
   private $index = 1;
   private $count = 1;
   private $urls = array();
-  
+
   public function __construct ($base_url,$base_uri,$compress=true) {
     ini_set('memory_limit', '75M'); // 50M required per tests
     $this->compress = ($compress) ? '.gz' : '';
     $this->base_url = $base_url;
     $this->base_uri = $base_uri;
   }
-  
+
   public function page ($name) {
     $this->save();
     $this->page = $name;
     $this->index = 1;
   }
-  
+
   public function url ($url, $lastmod='', $changefreq='', $priority='') {
     if(strpos($url,$this->base_url) === false) $url = $this->base_url . $url;
     if(strpos($url,'&amp;') === false) $url = htmlspecialchars($url);
@@ -71,15 +71,16 @@ class Sitemap {
       $this->count++;
     }
   }
-  
+
   public function close() {
     $this->save();
     $this->ping_search_engines();
   }
-  
+
   private function save () {
     if (empty($this->urls)) return;
-    $file = "sitemap-{$this->page}-{$this->index}.xml{$this->compress}";
+    $file = "sitemap.xml{$this->compress}";
+    // $file = "sitemap-{$this->page}-{$this->index}.xml{$this->compress}";
     $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
     $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
     foreach ($this->urls as $url) {
@@ -105,9 +106,9 @@ class Sitemap {
       unlink($this->base_uri . "sitemap-{$this->page}-{$num}.xml{$this->compress}");
       $num++;
     }
-    $this->index($file);
+    // $this->index($file);
   }
-  
+
   private function index ($file) {
     $sitemaps = array();
     $index = "sitemap-index.xml{$this->compress}";
@@ -137,7 +138,7 @@ class Sitemap {
     fclose($fp);
     @chmod($this->base_uri.$index,$this->filePermissions);
   }
-  
+
   private function xml_tag ($xml, $tag, &$end='') {
     if (is_array($tag)) {
       $tags = array();
@@ -154,7 +155,7 @@ class Sitemap {
     $end = strpos($xml, '>', $start + $length) + 1;
     return ($end !== false) ? substr($xml, $start, $length) : false;
   }
-  
+
   public function ping_search_engines () {
     $sitemap = $this->base_url . 'sitemap-index.xml' . $this->compress;
     $engines = array();
@@ -170,11 +171,11 @@ class Sitemap {
         $http_response = fgets($fp, 128);
         fclose($fp);
         list($response, $code) = explode (' ', $http_response);
-        if ($this->showError && $code != 200) trigger_error ("{$host} ping was unsuccessful.<br />Code: {$code}<br />Response: {$response}");
+        if ($this->showError && $code != 200) trigger_error ("{$host} ping was unsuccessful.<br>Code: {$code}<br>Response: {$response}");
       }
     }
   }
-  
+
   public function __destruct () {
     $this->save();
   }

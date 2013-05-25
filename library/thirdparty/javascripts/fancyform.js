@@ -1,13 +1,13 @@
 /*
 * FancyForm 1.1.2
-* 
+*
 * Author
 * Vacuous Virtuoso, lipidity.com
 * Fabian Vogelsteller, frozeman.de
 *
-* 
+*
 * methods:
-* 
+*
 * add(elements)
 * setDepency(
 *   element = the element which has depencies,
@@ -15,23 +15,23 @@
 *   checkElement = (boolean, default: TRUE) whether the depencies will be changed when the element is checked (TRUE) or unchecked (FALSE)
 *   checkDepencies = (boolean, default: TRUE) whether the elements will be checked (TRUE) or unchecked (FALSE)
 * all()
-* none() 
+* none()
 *
 * requires: mootools core 1.3.1
-* 
+*
 * ---
 * Checkbox and radio input replacement script.
 * Toggles defined class when input is selected.
 */
 
 var FancyForm = new Class ({
-  
+
   Implements: Options,
-	
+
 		options: {
 			onClasses: {
         checkbox: 'fancyform_checked',
-			  radio: 'fancyform_selected'
+				radio: 'fancyform_selected'
       },
 			offClasses: {
         checkbox: 'fancyform_unchecked',
@@ -41,10 +41,10 @@ var FancyForm = new Class ({
       onSelect: function(){},
       onDeselect: function(){}
 		},
-  
+
 	initialize: function(elements, options){
-	  this.setOptions(options);
-		if(this.initing != undefined) return;
+		this.setOptions(options);
+		if(this.initing !== undefined) return;
 		this.elements = (elements) ? $$(elements) : $$('input');
 		if(typeOf(this.options['extraClasses']) == 'object'){
 			this.extra = this.options['extraClasses'];
@@ -55,18 +55,23 @@ var FancyForm = new Class ({
 				on: 'fancyform_on',
 				off: 'fancyform_off',
 				all: 'fancyform'
-			}
+			};
 		} else {
 			this.extra = {};
 		}
 		this.chks = [];
 		this.add();
 		if(!Browser.ie6 && !Browser.ie7 && !Browser.ie8) {
-  		$$('form').each(function(x) {
-  			x.addEvent('reset', function(a) {
-  				window.setTimeout(function(){this.chks.each(function(x){this.update(x);x.inputElement.blur()})}, 200);
-  			});
-  		});
+			$$('form').each(function(x) {
+				x.addEvent('reset', function(a) {
+					window.setTimeout(function(){
+						this.chks.each(function(x){
+							this.update(x);
+							x.inputElement.blur();
+						});
+					}, 200);
+				});
+			});
 		}
 	},
 	add: function(){
@@ -75,10 +80,10 @@ var FancyForm = new Class ({
 		var filteredElements = [];
 		var self = this;
 		var newChks = this.elements.filter(function(chk){
-			if(typeOf(chk) != 'element' || chk.inputElement || (chk.get('tag') == 'input' && chk.getParent().inputElement))
+			if(typeOf(chk) != 'element' || chk.inputElement || (chk.get('tag') == 'input' && chk.getParent().inputElement) || chk.retrieve('fancyform_replacment'))
 				return false;
 			if(chk.get('tag') == 'input' && (self.options.onClasses[chk.getProperty('type')])){
-				var el = new Element('div')
+				var el = new Element('div');
 				chk.grab(el,'before');
 				if(el.getNext('input')==chk){
 					el.type = chk.getProperty('type');
@@ -99,15 +104,15 @@ var FancyForm = new Class ({
 		});
 		newChks = newChks.combine(keeps);
 		newChks.each((function(chk){
-		  // replace the imput element
+			// replace the imput element
 			var c = chk.inputElement;
 			c.setStyle('position', 'fixed'); // absolute
 			c.setStyle('top', '0px');
 			c.setStyle('left', '-9999px');
-			chk.addEvent('selectStart', function(f){f.stop()});
+			chk.addEvent('selectStart', function(f){f.stop();});
 			chk.name = c.getProperty('name');
 			this.update(chk);
-			
+
 			// ->> add events
 			chk.addEvent('click', function(f){
 				f.stop();
@@ -148,25 +153,25 @@ var FancyForm = new Class ({
 				this.update(chk);
 				this.focus = 1;
 				if(f.type == 'prop' && !this.initing && typeOf(c.onclick) == 'function')
-					 c.onclick();
-					 
+					c.onclick();
+
 				// click depencies
 				if(typeOf(c.retrieve('fancyform_depencies')) == 'elements') {
-				  c.retrieve('fancyform_depencies').each(function(depency) {
-				    var depencyReplacement = depency.retrieve('fancyform_replacment');
-				    /*
+					c.retrieve('fancyform_depencies').each(function(depency) {
+						var depencyReplacement = depency.retrieve('fancyform_replacment');
+						/*
             if(depency.disabled)
-            		          return;
+							return;
             */
-		        var elementValue = depency.retrieve('fancyform_checkElement_-' + c.retrieve('fancyform_uniqueID'));   
-				    var depencyValue = depency.retrieve('fancyform_checkDepencies_-' + c.retrieve('fancyform_uniqueID'));
-				    if(depencyValue === true && c.checked == elementValue &&
+						var elementValue = depency.retrieve('fancyform_checkElement_-' + c.retrieve('fancyform_uniqueID'));
+						var depencyValue = depency.retrieve('fancyform_checkDepencies_-' + c.retrieve('fancyform_uniqueID'));
+						if(depencyValue === true && c.checked == elementValue &&
                (depencyReplacement.hasClass('fancyform_unchecked') || depencyReplacement.hasClass('fancyform_unselected')))
               depency.setProperty('checked', 'checked');
             else if(depencyValue === false && c.checked == elementValue &&
                     (depencyReplacement.hasClass('fancyform_checked') || depencyReplacement.hasClass('fancyform_selected')))
               depency.removeProperty('checked');
-			      this.update(depencyReplacement);
+						this.update(depencyReplacement);
           },this);
         }
 			}).bind(this));
@@ -214,25 +219,28 @@ var FancyForm = new Class ({
 			if(!this.initing)
 				this.options.onDeselect(chk);
 		}
-		if(!this.initing)
+		if(!this.initing) {
 			chk.inputElement.focus();
+			if(chk.type == 'radio' || chk.type == 'checkbox')
+				chk.inputElement.fireEvent('change');
+		}
 	},
 	setDepency: function(element,depencies,checkElement,checkDepencies) {
-	  
-	  if(typeof(checkElement) == 'undefined')
-	   checkElement = true;
-	  if(typeof(checkDepencies) == 'undefined')
-	   checkDepencies = true;
-	  
-	  if(this.elements.contains($(element))) {
-	    depencies = (depencies) ? $$(depencies) : [];
-	    depencies.each(function(depency){
-	      var unique = String.uniqueID();
+
+		if(typeOf(checkElement) == 'null')
+			checkElement = true;
+		if(typeOf(checkDepencies) == 'null')
+			checkDepencies = true;
+
+		if(this.elements.contains($(element))) {
+			depencies = (depencies) ? $$(depencies) : [];
+			depencies.each(function(depency){
+				var unique = String.uniqueID();
         depency.store('fancyform_checkElement_-'+$(element).retrieve('fancyform_uniqueID',unique),checkElement);
         depency.store('fancyform_checkDepencies_-'+$(element).retrieve('fancyform_uniqueID',unique),checkDepencies);
       });
-	    if(typeOf($(element).retrieve('fancyform_depencies')) == 'array')
-	       depencies.combine($(element).retrieve('fancyform_depencies'));
+			if(typeOf($(element).retrieve('fancyform_depencies')) == 'array')
+				depencies.combine($(element).retrieve('fancyform_depencies'));
       $(element).store('fancyform_depencies',depencies);
     }
   },

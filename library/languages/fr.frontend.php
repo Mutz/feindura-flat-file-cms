@@ -16,25 +16,27 @@
  */
 /**
  * FRENCH (FR) language-file for the feindura CMS (FRONTEND)
- * 
+ *
  * need a RETURN $frontendLangFile; at the END
  */
 
- 
+
 /*
 // -> GENERAL <-
 */
 
-$frontendLangFile['HEADER_TIP_GOTOBACKEND']          = 'Feindura::Cliquez ici pour aller à la CMS.';
-$frontendLangFile['PAGEFUNCTIONS_TIP_EDITINBACKEND'] = 'Modifier cette page dans le backend';
+$frontendLangFile['HEADER_TIP_GOTOBACKEND']               = 'Feindura::Cliquez ici pour aller à la CMS.';
+$frontendLangFile['PAGEFUNCTIONS_TIP_EDITINBACKEND']      = 'Modifier cette page dans le backend';
 
-$frontendLangFile['EDITPAGE_TIP_DISABLED']           = 'Il n\'est pas possible de modifier la page::La page contient [i]<script>[/i] tags et par conséquent seulement peuvent être édités dans le backend.';
-
+$frontendLangFile['EDITPAGE_TIP_DISABLED']                = 'Édition dans frontend pas possible:: Le contenu a été modifié par des scripts.';
+$frontendLangFile['TOPBAR_TIP_FRONTENDEDITING']           = 'Sélectionnez une zone modifiable pour commencer à éditer.';
+$frontendLangFile['TOPBAR_TIP_DEACTIVATEFRONTENDEDITING'] = 'Désactiver édition frontal';
 
 // FRONTEND ERROR TEXTS
 
-$frontendLangFile['PAGE_ERROR_NOPAGE']               = 'la page demandée n\'existe pas.';
-$frontendLangFile['PAGE_ERROR_PAGENOTPUBLIC']        = 'la page demandée est désactivée.';
+$frontendLangFile['PAGE_ERROR_NOPAGE']               = 'La page demandée n\'existe pas.';
+$frontendLangFile['PAGE_ERROR_PAGENOTPUBLIC']        = 'La page demandée est désactivée.';
+$frontendLangFile['INFO_MAINTENACE']                 = 'Le site web sera bientôt disponible.';
 
 
 // DATE TEXTS
@@ -52,4 +54,3 @@ $frontendLangFile['PAGE_TEXT_MORE']                  = 'plus';
 // RETURN ****************************************************************************************
 // -----------------------------------------------------------------------------------------------
 return $frontendLangFile;
-?>

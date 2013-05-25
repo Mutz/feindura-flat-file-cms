@@ -11,10 +11,20 @@ You can also request only single plugins, it will then only return a string, wit
 require('cms/feindura.include.php');
 
 // creates a new Feindura instance
-$myCms = new Feindura();
+$feindura = new Feindura();
 
-// get the all plugins, which are activated in the page with ID "2"
-$plugins = $myCms->showPlugins(true,2);
+?>
+<!DOCTYPE html>
+<html>
+...
+
+<?php
+
+// get the all plugins from the page with ID "2"
+$plugins = $feindura->showPlugins(true,2);
+// you could also call
+// $plugins = $feindura->showPlugins('imageGallery');
+// it would get the imageGallery plugin of the current page
 
 // displays the page (the "\n" creates a line break for a better look)
 foreach($plugins as $plugin) {
@@ -23,16 +33,15 @@ foreach($plugins as $plugin) {
 }
 
 
-/*                              *** RESULT with page *** 
+                               *** RESULT *** 
 --------------------------------------------------------------------------------
-*/
 
 <p>HTML created by the Plugin</p>
 <span>What it is depends on the plugin :-)</span>
 -----
 <h1>Another plugin which follows the first one</h1>
-<p>You can alsocall specific plugins directly
-when you give the plugin name instead of "true", like in this example</p>
+<p>You can also call specific plugins directly. To do that
+give it the plugin name, instead of "TRUE".</p>
 -----
 
 ?>

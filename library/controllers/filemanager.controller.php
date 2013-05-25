@@ -13,9 +13,13 @@
 
     You should have received a copy of the GNU General Public License along with this program;
     if not,see <http://www.gnu.org/licenses/>.
-    
-* controllers/filemanager.controller.php version 0.1
+
+* controllers/filemanager.controller.php
+* @version 0.2
 */
+
+// FORCE using the existing session, when request comes from FLASH
+if(isset($_POST['session'])) session_id($_POST['session']);
 
 /**
  * Includes the login.include.php and backend.include.php and filter the basic data
@@ -24,29 +28,45 @@ require_once(dirname(__FILE__)."/../includes/secure.include.php");
 
 define("FILEMANAGER_CODE", true);
 
-if(!$adminConfig['user']['fileManager'] || empty($adminConfig['uploadPath']) || empty($adminConfig['basePath']))
+if(!GeneralFunctions::hasPermission('fileManager') || !is_dir(dirname(__FILE__).'/../../upload/') || empty($adminConfig['basePath']))
   die('MooTools FileManager is deactivated');
-
-if(!empty($adminConfig['uploadPath']) && !is_dir(DOCUMENTROOT.$adminConfig['uploadPath'].$adminConfig['pageThumbnail']['path']))
-  if(!@mkdir(DOCUMENTROOT.$adminConfig['uploadPath'].$adminConfig['pageThumbnail']['path'],$adminConfig['permissions'],true))
+elseif(!is_dir(dirname(__FILE__).'/../../upload/thumbnails/'))
+  if(!@mkdir(dirname(__FILE__).'/../../upload/thumbnails/',$adminConfig['permissions'],true))
     die('Couldn\'t create the thumbnail folder');
 
 
-require_once(dirname(__FILE__).'/../thirdparty/MooTools-FileManager/Assets/Connector/FileManager.php');
+require_once(dirname(__FILE__).'/../thirdparty/MooTools-FileManager/Assets/Connector/FileManagerWithAliasSupport.php');
 
-$browser = new FileManager(array(
-  'directory' => $adminConfig['uploadPath'],
-  'thumbnailPath' => $adminConfig['uploadPath'].$adminConfig['pageThumbnail']['path'],
-  'assetBasePath' => $adminConfig['basePath'].'library/thirdparty/MooTools-FileManager/Assets',
+// set the right dateformat
+switch ($websiteConfig['dateFormat']) {
+  case 'D.M.Y':
+    $dateFormat = 'd.m.Y H:i';
+    break;
+  case 'M/D/Y':
+    $dateFormat = 'm/d/Y H:i';
+    break;
+  case 'D/M/Y':
+    $dateFormat = 'd/m/Y H:i';
+    break;
+
+  default:
+    $dateFormat = 'Y-m-d H:i';
+    break;
+}
+
+$browser = new FileManagerWithAliasSupport(array(
+  'Aliases' => array(URIEXTENSION => DOCUMENTROOT),
+  'directory' =>  GeneralFunctions::Path2URI(dirname(__FILE__).'/../../upload/'),
+  'thumbnailPath' => GeneralFunctions::Path2URI(dirname(__FILE__).'/../../upload/thumbnails/'),
+  'assetBasePath' => GeneralFunctions::Path2URI(dirname(__FILE__).'/../thirdparty/MooTools-FileManager/Assets'),
   'documentRootPath' => DOCUMENTROOT,
   'chmod' => $adminConfig['permissions'],
-  'dateFormat' => ($adminConfig['dateFormat'] == 'eu') ? 'd.m.Y H:i' : 'Y-m-d H:i',
+  'dateFormat' => $dateFormat,
   'upload' => true,
   'destroy' => true,
   'create' => true,
   'move' => true,
   'download' => true,
-  'safe' => false, // If true, disallows 'exe', 'dll', 'php', 'php3', 'php4', 'php5', 'phps' and saves them as 'txt' instead.
-  
+  'safe' => false // If true, disallows 'exe', 'dll', 'php', 'php3', 'php4', 'php5', 'phps' and saves them as 'txt' instead.
 ));
 $browser->fireEvent(!empty($_GET['event']) ? $_GET['event'] : null);
